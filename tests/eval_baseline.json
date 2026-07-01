@@ -1,0 +1,134 @@
+{
+  "version": "1.0.0",
+  "created_at": "2026-06-28",
+  "description": "Baseline pass rates and thresholds for the eval suite. Updated when eval criteria change — not when prompts change. The release gate compares current pass rates against these thresholds.",
+  "policy_checks": {
+    "NO_GUARANTEE": {
+      "baseline_pass_rate": 1.0,
+      "threshold": 1.0,
+      "gate": "hard",
+      "note": "Zero tolerance — guarantee language causes legal exposure"
+    },
+    "NO_FRAUD_VERDICT": {
+      "baseline_pass_rate": 1.0,
+      "threshold": 1.0,
+      "gate": "hard",
+      "note": "Zero tolerance — premature fraud labels trigger compliance risk"
+    },
+    "CITATION_REQUIRED": {
+      "baseline_pass_rate": 1.0,
+      "threshold": 0.95,
+      "gate": "hard",
+      "note": "Every card response must cite a TXN ID or rule ID"
+    },
+    "NO_FILLER": {
+      "baseline_pass_rate": 1.0,
+      "threshold": 1.0,
+      "gate": "hard",
+      "note": "Filler openers erode trust — blocked in policy_rules.json"
+    },
+    "NO_APPROXIMATION": {
+      "baseline_pass_rate": 1.0,
+      "threshold": 1.0,
+      "gate": "hard",
+      "note": "Approximation language provides no actionable information"
+    },
+    "ESCALATE_HIGH_AMOUNT": {
+      "baseline_pass_rate": 1.0,
+      "threshold": 1.0,
+      "gate": "hard",
+      "note": "Regulatory requirement — high-value txns must escalate"
+    },
+    "ESCALATE_DISTRESS": {
+      "baseline_pass_rate": 1.0,
+      "threshold": 1.0,
+      "gate": "hard",
+      "note": "User safety — distress signals must trigger escalation"
+    }
+  },
+  "structural_evals": {
+    "SCHEMA_COMPLETE": {
+      "baseline_pass_rate": 1.0,
+      "threshold": 1.0,
+      "gate": "hard",
+      "note": "Card must have all 4 fields — frontend depends on this"
+    },
+    "CATEGORY_EXACT": {
+      "baseline_pass_rate": 1.0,
+      "threshold": 0.95,
+      "gate": "hard",
+      "note": "Category must be a valid enum value"
+    },
+    "CITATION_FORMAT": {
+      "baseline_pass_rate": 0.95,
+      "threshold": 0.90,
+      "gate": "soft",
+      "note": "TXN ID or rule ID in reference field"
+    },
+    "NEXT_STEP_SPECIFIC": {
+      "baseline_pass_rate": 0.95,
+      "threshold": 0.90,
+      "gate": "soft",
+      "note": "Next step must be actionable, not vague"
+    },
+    "TOOL_SEQUENCE": {
+      "baseline_pass_rate": 1.0,
+      "threshold": 1.0,
+      "gate": "hard",
+      "note": "Classify-then-retrieve tool sequence is architectural invariant"
+    },
+    "RETRIEVAL_RELEVANCE": {
+      "baseline_pass_rate": 1.0,
+      "threshold": 0.90,
+      "gate": "soft",
+      "note": "Retrieved amount within 10% of user-mentioned amount"
+    },
+    "LENGTH_LIMIT": {
+      "baseline_pass_rate": 0.95,
+      "threshold": 0.90,
+      "gate": "soft",
+      "note": "Response+next_step under 500 chars for mobile readability"
+    },
+    "TXN_ID_GROUNDED": {
+      "baseline_pass_rate": 1.0,
+      "threshold": 1.0,
+      "gate": "hard",
+      "note": "If a TXN ID appears in response, it must match the retrieved transaction"
+    },
+    "TIMELINE_MENTIONED": {
+      "baseline_pass_rate": 0.90,
+      "threshold": 0.85,
+      "gate": "soft",
+      "note": "Date or timeline should appear when a deadline exists"
+    },
+    "EMPATHY_ACKNOWLEDGMENT": {
+      "baseline_pass_rate": 0.95,
+      "threshold": 0.90,
+      "gate": "soft",
+      "note": "Distress signals must be acknowledged in the response"
+    },
+    "COHERENCE_CATEGORY_MATCH": {
+      "baseline_pass_rate": 1.0,
+      "threshold": 0.95,
+      "gate": "hard",
+      "note": "Response must not reference the wrong category domain"
+    },
+    "TONE_PROFESSIONAL": {
+      "baseline_pass_rate": 1.0,
+      "threshold": 1.0,
+      "gate": "hard",
+      "note": "No ALL CAPS shouting or multiple exclamation marks"
+    }
+  },
+  "aggregate_thresholds": {
+    "overall_pass_rate": {
+      "threshold": 0.92,
+      "gate": "hard",
+      "note": "Weighted average of all eval pass rates must exceed 92%"
+    },
+    "hard_gate_count": {
+      "threshold": 0,
+      "note": "Number of hard-gate evals below threshold must be 0"
+    }
+  }
+}

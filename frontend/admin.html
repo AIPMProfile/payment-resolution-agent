@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FinAssist Admin</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #F7F7F7; color: #1A1A1A; min-height: 100vh; }
+    header { background: #fff; border-bottom: 2px solid #37474F; padding: 14px 32px; display: flex; align-items: center; gap: 12px; }
+    .logo { font-weight: 800; font-size: 17px; color: #37474F; }
+    .logo span { color: #FF5722; }
+    h2 { font-size: 13px; font-weight: 700; color: #37474F; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 12px; }
+    main { max-width: 860px; margin: 32px auto; padding: 0 24px; display: flex; flex-direction: column; gap: 24px; }
+    .card { background: #fff; border: 1px solid #E0E0E0; border-radius: 10px; padding: 20px 24px; }
+    .auth-row { display: flex; gap: 10px; }
+    #admin-key { flex: 1; border: 1px solid #E0E0E0; border-radius: 6px; padding: 9px 12px; font-size: 14px; outline: none; }
+    #admin-key:focus { border-color: #37474F; }
+    #load-btn { background: #37474F; color: #fff; border: none; border-radius: 6px; padding: 9px 18px; font-size: 14px; cursor: pointer; }
+    #load-btn:hover { background: #263238; }
+    .metrics-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
+    .metric-box { background: #F5F5F5; border-radius: 8px; padding: 14px; text-align: center; }
+    .m-val { font-size: 22px; font-weight: 700; color: #37474F; }
+    .m-label { font-size: 11px; color: #666; margin-top: 3px; }
+    .suggestion { border: 1px solid #E0E0E0; border-radius: 8px; padding: 14px; margin-bottom: 10px; }
+    .s-pattern { font-weight: 600; margin-bottom: 4px; }
+    .s-meta { font-size: 12px; color: #666; margin-bottom: 8px; }
+    pre.s-diff { background: #F5F5F5; border-radius: 4px; padding: 8px; font-size: 11px; white-space: pre-wrap; max-height: 140px; overflow-y: auto; margin-bottom: 10px; }
+    .s-actions { display: flex; gap: 8px; }
+    .s-approve { background: #4CAF50; color: #fff; border: none; border-radius: 5px; padding: 6px 14px; font-size: 13px; cursor: pointer; }
+    .s-reject  { background: #f44336; color: #fff; border: none; border-radius: 5px; padding: 6px 14px; font-size: 13px; cursor: pointer; }
+    #error-msg { color: #f44336; font-size: 13px; display: none; margin-top: 8px; }
+    #period-note { font-size: 11px; color: #999; margin-top: 8px; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo"><span>⚡</span> FinAssist <span style="font-weight:400;font-size:13px;color:#666;margin-left:8px">Admin</span></div>
+</header>
+
+<main>
+  <div class="card">
+    <h2>Authentication</h2>
+    <div class="auth-row">
+      <input id="admin-key" type="password" placeholder="Admin API key" />
+      <button id="load-btn">Load dashboard</button>
+    </div>
+    <div id="error-msg">Invalid admin key.</div>
+  </div>
+
+  <div class="card" id="metrics-card" style="display:none">
+    <h2>Metrics</h2>
+    <div class="metrics-grid" id="metrics-grid"></div>
+    <div id="period-note"></div>
+  </div>
+
+  <div class="card" id="suggestions-card" style="display:none">
+    <h2>Pending policy suggestions</h2>
+    <div id="suggestions-list"></div>
+  </div>
+
+  <div class="card" id="discovery-card" style="display:none">
+    <h2>Error Discovery</h2>
+    <p style="font-size:13px;color:#666;margin-bottom:12px">Browse traces, cluster failure patterns, and track annotation progress.</p>
+    <a id="discovery-link" href="#" style="display:inline-block;background:#37474F;color:#fff;border-radius:6px;padding:9px 18px;font-size:14px;text-decoration:none">Open Error Discovery</a>
+  </div>
+</main>
+
+<script>
+  const keyInput = document.getElementById('admin-key');
+  const loadBtn = document.getElementById('load-btn');
+  const errorMsg = document.getElementById('error-msg');
+
+  loadBtn.addEventListener('click', load);
+  keyInput.addEventListener('keydown', e => { if (e.key === 'Enter') load(); });
+
+  async function load() {
+    const key = keyInput.value.trim();
+    if (!key) return;
+    const headers = { 'Authorization': `Bearer ${key}` };
+    errorMsg.style.display = 'none';
+
+    try {
+      const [mRes, sRes] = await Promise.all([
+        fetch('/admin/metrics', { headers }),
+        fetch('/admin/suggestions', { headers }),
+      ]);
+      if (!mRes.ok) { errorMsg.style.display = 'block'; return; }
+      renderMetrics(await mRes.json());
+      renderSuggestions(await sRes.json(), key);
+      document.getElementById('discovery-card').style.display = 'block';
+      document.getElementById('discovery-link').href = `/admin/discovery?key=${encodeURIComponent(key)}`;
+    } catch (e) { console.error(e); }
+  }
+
+  function renderMetrics(m) {
+    const dist = Object.entries(m.helpful_score_distribution).map(([k,v]) => `${k}: ${v}`).join(' · ');
+    const cronEntries = Object.entries(m.cron_failure_counts || {});
+    const cronText = cronEntries.length ? cronEntries.map(([k,v]) => `${k}: ${v}`).join(' · ') : '0';
+    document.getElementById('metrics-grid').innerHTML = `
+      <div class="metric-box"><div class="m-val">${(m.policy_pass_rate*100).toFixed(1)}%</div><div class="m-label">Policy pass rate</div></div>
+      <div class="metric-box"><div class="m-val">${(m.escalation_rate*100).toFixed(1)}%</div><div class="m-label">Escalation rate</div></div>
+      <div class="metric-box"><div class="m-val">${(m.timeline_accuracy_rate*100).toFixed(1)}%</div><div class="m-label">Timeline accuracy</div></div>
+      <div class="metric-box"><div class="m-val" style="font-size:13px">${dist||'—'}</div><div class="m-label">Score distribution</div></div>
+      <div class="metric-box"><div class="m-val" style="font-size:13px">${cronText}</div><div class="m-label">Cron failures (24h)</div></div>
+    `;
+    document.getElementById('period-note').textContent = `Period: ${m.period}`;
+    document.getElementById('metrics-card').style.display = 'block';
+  }
+
+  function renderSuggestions(suggestions, key) {
+    const el = document.getElementById('suggestions-list');
+    document.getElementById('suggestions-card').style.display = 'block';
+    if (!suggestions.length) { el.innerHTML = '<p style="color:#999;font-size:13px">No pending suggestions.</p>'; return; }
+
+    el.innerHTML = '';
+    suggestions.forEach(s => {
+      const div = document.createElement('div');
+      div.className = 'suggestion';
+      div.innerHTML = `
+        <div class="s-pattern">${esc(s.failure_pattern)}</div>
+        <div class="s-meta">Layer: ${s.affected_layer} · Confidence: ${(s.confidence*100).toFixed(0)}%</div>
+        ${s.diff ? `<pre class="s-diff">${esc(s.diff)}</pre>` : `<p style="font-size:13px;margin-bottom:10px">${esc(s.suggested_fix_text)}</p>`}
+        <div class="s-actions">
+          <button class="s-approve" data-id="${s.id}">Approve</button>
+          <button class="s-reject"  data-id="${s.id}">Reject</button>
+        </div>
+      `;
+      div.querySelector('.s-approve').addEventListener('click', async () => {
+        const reviewer = prompt('Reviewer name:'); if (!reviewer) return;
+        const r = await fetch(`/admin/suggestions/${s.id}/approve`, { method:'POST', headers:{'Content-Type':'application/json','Authorization':`Bearer ${key}`}, body: JSON.stringify({reviewer}) });
+        if (r.ok) div.querySelector('.s-actions').innerHTML = '<span style="color:green;font-size:13px">✓ Approved</span>';
+      });
+      div.querySelector('.s-reject').addEventListener('click', async () => {
+        const reviewer = prompt('Reviewer name:'); const reason = prompt('Reason:');
+        if (!reviewer || !reason) return;
+        const r = await fetch(`/admin/suggestions/${s.id}/reject`, { method:'POST', headers:{'Content-Type':'application/json','Authorization':`Bearer ${key}`}, body: JSON.stringify({reviewer, reason}) });
+        if (r.ok) div.querySelector('.s-actions').innerHTML = '<span style="color:red;font-size:13px">✗ Rejected</span>';
+      });
+      el.appendChild(div);
+    });
+  }
+
+  function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+</script>
+</body>
+</html>

@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Error Discovery — FinAssist</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #F7F7F7; color: #1A1A1A; min-height: 100vh; }
+
+    header { background: #fff; border-bottom: 2px solid #37474F; padding: 14px 32px; display: flex; align-items: center; justify-content: space-between; }
+    .logo { font-weight: 800; font-size: 17px; color: #37474F; }
+    .logo span { color: #FF5722; }
+    .header-right { display: flex; align-items: center; gap: 12px; }
+    .back-link { font-size: 13px; color: #666; text-decoration: none; }
+    .back-link:hover { color: #37474F; }
+
+    /* Tabs */
+    .tab-bar { display: flex; gap: 0; border-bottom: 2px solid #E0E0E0; background: #fff; padding: 0 32px; }
+    .tab { padding: 12px 20px; font-size: 13px; font-weight: 600; color: #666; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all 0.15s; }
+    .tab:hover { color: #37474F; }
+    .tab.active { color: #37474F; border-bottom-color: #FF5722; }
+    .tab-views { display: none; }
+
+    main { max-width: 1060px; margin: 0 auto; padding: 24px; }
+
+    /* Summary bar */
+    .summary-bar { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+    .summary-stat { background: #fff; border: 1px solid #E0E0E0; border-radius: 8px; padding: 14px 18px; min-width: 130px; text-align: center; }
+    .stat-val { font-size: 22px; font-weight: 700; color: #37474F; }
+    .stat-val.green { color: #5B8C5A; }
+    .stat-val.red { color: #C25858; }
+    .stat-val.orange { color: #B8883B; }
+    .stat-val.blue { color: #5A7D9A; }
+    .stat-label { font-size: 11px; color: #666; margin-top: 2px; }
+    .summary-stat.bg-green { background: #F0F7F0; border-color: #D4E8D4; }
+    .summary-stat.bg-red { background: #FBF0F0; border-color: #EACFCF; }
+    .summary-stat.bg-orange { background: #FDF6ED; border-color: #EBD9BC; }
+    .summary-stat.bg-blue { background: #F0F4F8; border-color: #CEDBE8; }
+    .summary-stat.bg-purple { background: #F5F2F8; border-color: #D8D0E4; }
+
+    /* Controls */
+    .controls { display: flex; gap: 10px; align-items: center; margin-bottom: 16px; flex-wrap: wrap; }
+    .controls select, .controls input { border: 1px solid #E0E0E0; border-radius: 6px; padding: 7px 10px; font-size: 13px; outline: none; }
+    .controls select:focus, .controls input:focus { border-color: #37474F; }
+    .mode-toggle { display: flex; border: 1px solid #E0E0E0; border-radius: 6px; overflow: hidden; }
+    .mode-btn { padding: 7px 14px; font-size: 12px; font-weight: 600; border: none; cursor: pointer; background: #fff; color: #666; transition: all 0.15s; }
+    .mode-btn.active { background: #37474F; color: #fff; }
+    .btn-sm { background: #37474F; color: #fff; border: none; border-radius: 6px; padding: 7px 14px; font-size: 13px; cursor: pointer; }
+    .btn-sm:hover { background: #263238; }
+
+    /* Trace card */
+    .trace-card { background: #fff; border: 1px solid #E0E0E0; border-radius: 8px; padding: 16px 18px; margin-bottom: 10px; transition: border-color 0.15s; }
+    .trace-card:hover { border-color: #37474F; }
+    .trace-card.expanded { border-color: #FF5722; }
+    .trace-header { display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+    .trace-id { font-family: monospace; font-size: 12px; color: #999; }
+    .trace-cat { font-weight: 600; font-size: 14px; }
+    .trace-badges { display: flex; gap: 6px; align-items: center; }
+    .badge { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 10px; }
+    .badge-pass { background: #E8F5E9; color: #2E7D32; }
+    .badge-fail { background: #FFEBEE; color: #C62828; }
+    .badge-score { background: #FFF3E0; color: #E65100; }
+    .badge-judge { background: #E3F2FD; color: #1565C0; }
+    .trace-body { display: none; margin-top: 12px; padding-top: 12px; border-top: 1px solid #F0F0F0; }
+    .trace-card.expanded .trace-body { display: block; }
+    .trace-response { background: #FAFAFA; border-radius: 6px; padding: 12px; font-size: 13px; line-height: 1.5; margin-bottom: 12px; white-space: pre-wrap; word-break: break-word; max-height: 200px; overflow-y: auto; }
+    .trace-checks { margin-bottom: 12px; }
+    .check-row { display: flex; align-items: center; gap: 8px; font-size: 12px; padding: 3px 0; }
+    .check-pass { color: #4CAF50; }
+    .check-fail { color: #f44336; font-weight: 600; }
+
+    /* Annotation form */
+    .annotation-form { background: #FFFBF0; border: 1px solid #FFE0B2; border-radius: 8px; padding: 14px; margin-top: 10px; }
+    .annotation-form h4 { font-size: 12px; font-weight: 700; color: #E65100; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .annotation-form select, .annotation-form textarea { width: 100%; border: 1px solid #E0E0E0; border-radius: 6px; padding: 8px 10px; font-size: 13px; margin-bottom: 8px; font-family: inherit; outline: none; }
+    .annotation-form textarea { resize: vertical; min-height: 60px; }
+    .annotation-form button { background: #FF5722; color: #fff; border: none; border-radius: 6px; padding: 8px 16px; font-size: 13px; cursor: pointer; font-weight: 600; }
+    .annotation-form button:hover { background: #E64A19; }
+    .annotation-saved { color: #4CAF50; font-size: 13px; font-weight: 600; display: none; }
+
+    /* Cluster card (Map view) */
+    .cluster-card { background: #fff; border: 1px solid #E0E0E0; border-radius: 10px; padding: 18px; margin-bottom: 12px; cursor: pointer; transition: all 0.15s; }
+    .cluster-card:hover { border-color: #FF5722; transform: translateY(-1px); box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+    .cluster-header { display: flex; justify-content: space-between; align-items: center; }
+    .cluster-name { font-weight: 700; font-size: 15px; }
+    .cluster-count { font-size: 20px; font-weight: 700; }
+    .cluster-count.high { color: #f44336; }
+    .cluster-count.medium { color: #FF9800; }
+    .cluster-count.low { color: #4CAF50; }
+    .cluster-meta { font-size: 12px; color: #666; margin-top: 6px; }
+    .cluster-bar { height: 4px; border-radius: 2px; margin-top: 10px; background: #F0F0F0; overflow: hidden; }
+    .cluster-bar-fill { height: 100%; border-radius: 2px; transition: width 0.3s; }
+    .cluster-categories { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+    .cat-chip { font-size: 11px; background: #F5F5F5; border-radius: 4px; padding: 2px 8px; color: #666; }
+
+    /* Progress view */
+    .progress-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; align-items: start; }
+    .progress-card { background: #fff; border: 1px solid #E0E0E0; border-radius: 10px; padding: 20px; min-height: 160px; }
+    .progress-card h3 { font-size: 13px; font-weight: 700; color: #37474F; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+    .convergence-chart { width: 100%; height: 100px; position: relative; }
+    .convergence-bar { position: absolute; bottom: 0; background: #FF5722; border-radius: 3px 3px 0 0; min-width: 20px; transition: height 0.3s; }
+    .convergence-label { position: absolute; bottom: -18px; font-size: 9px; color: #999; white-space: nowrap; transform: rotate(-30deg); transform-origin: top left; }
+    .mode-list { list-style: none; }
+    .mode-list li { padding: 6px 0; border-bottom: 1px solid #F5F5F5; font-size: 13px; display: flex; justify-content: space-between; }
+    .mode-list li:last-child { border-bottom: none; }
+    .converge-badge { font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 10px; }
+    .converge-yes { background: #E8F5E9; color: #2E7D32; }
+    .converge-no { background: #FFF3E0; color: #E65100; }
+
+    /* Getting started (empty progress state) */
+    .getting-started { background: #fff; border: 1px solid #E0E0E0; border-radius: 10px; padding: 28px 24px; }
+    .getting-started h3 { font-size: 16px; font-weight: 700; color: #37474F; margin-bottom: 4px; }
+    .getting-started > p { font-size: 13px; color: #888; margin-bottom: 20px; }
+    .gs-steps { display: flex; flex-direction: column; gap: 10px; }
+    .gs-step { display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-radius: 10px; text-align: left; }
+    .gs-step-num { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: #fff; flex-shrink: 0; }
+    .gs-step-content { display: flex; flex-direction: column; gap: 2px; }
+    .gs-step-title { font-size: 13px; font-weight: 600; color: #37474F; }
+    .gs-step-desc { font-size: 12px; color: #888; line-height: 1.4; }
+
+    /* Mini progress ring */
+    .mini-ring { display: inline-block; width: 48px; height: 48px; margin-bottom: 6px; }
+
+    .empty-state { text-align: center; padding: 48px; color: #999; }
+    .empty-state .emoji { font-size: 32px; margin-bottom: 8px; }
+
+    /* Section descriptions */
+    .section-desc { font-size: 13px; color: #666; margin-bottom: 16px; line-height: 1.5; padding: 10px 14px; background: #FAFAFA; border-radius: 8px; border-left: 3px solid #E0E0E0; }
+
+    /* Category breakdown */
+    .cat-breakdown { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-bottom: 20px; }
+    .cat-card { background: #fff; border: 1px solid #E0E0E0; border-radius: 8px; padding: 14px; border-left: 3px solid #B0BEC5; }
+    .cat-card-name { font-size: 12px; font-weight: 700; color: #37474F; text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 8px; }
+    .cat-card-row { display: flex; justify-content: space-between; font-size: 12px; color: #666; padding: 2px 0; }
+    .cat-card-val { font-weight: 600; color: #37474F; }
+
+    /* Fixed legend panel */
+    .legend-panel { position: fixed; bottom: 20px; right: 20px; background: #fff; border: 1px solid #E0E0E0; border-radius: 10px; padding: 14px 16px; width: 320px; box-shadow: 0 4px 16px rgba(0,0,0,0.08); z-index: 50; transition: all 0.2s; max-height: calc(100vh - 80px); overflow-y: auto; }
+    .legend-panel.collapsed { width: auto; padding: 8px 14px; cursor: pointer; border-radius: 20px; }
+    .legend-panel.collapsed .legend-body { display: none; }
+    .legend-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .legend-title { font-size: 11px; font-weight: 700; color: #37474F; text-transform: uppercase; letter-spacing: 0.5px; }
+    .legend-toggle { background: none; border: none; font-size: 14px; cursor: pointer; color: #999; padding: 2px 6px; border-radius: 4px; }
+    .legend-toggle:hover { color: #37474F; background: #F5F5F5; }
+    .legend-panel.collapsed .legend-header { margin-bottom: 0; }
+    .legend-row { display: flex; align-items: flex-start; gap: 8px; padding: 4px 0; }
+    .legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
+    .legend-text { font-size: 11px; color: #555; line-height: 1.4; }
+    .legend-text strong { color: #37474F; font-size: 11px; }
+
+    /* Progress card subtitles */
+    .progress-subtitle { font-size: 12px; color: #888; font-weight: 400; margin-bottom: 12px; line-height: 1.4; }
+
+    @media (max-width: 640px) {
+      .summary-bar { flex-direction: column; }
+      .progress-grid { grid-template-columns: 1fr; }
+      header { padding: 12px 16px; }
+      main { padding: 16px; }
+      .legend-panel { width: 260px; right: 10px; bottom: 10px; }
+      .cat-breakdown { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo"><span>⚡</span> FinAssist <span style="font-weight:400;font-size:13px;color:#666;margin-left:8px">Error Discovery</span></div>
+  <div class="header-right">
+    <a href="/admin" class="back-link" id="admin-link" style="display:none">← Admin panel</a>
+  </div>
+</header>
+
+
+<div id="app">
+  <div class="tab-bar">
+    <div class="tab active" data-view="content">Content</div>
+    <div class="tab" data-view="map">Map</div>
+    <div class="tab" data-view="progress">Progress</div>
+  </div>
+
+  <main>
+    <!-- Summary bar (shared) -->
+    <div class="summary-bar" id="summary-bar"></div>
+
+    <!-- Category breakdown -->
+    <div class="cat-breakdown" id="cat-breakdown"></div>
+
+    <!-- CONTENT VIEW -->
+    <div id="view-content" class="view-panel">
+      <div class="section-desc">Expand any trace to see the full response, policy checks, and annotate failures.</div>
+      <div class="controls">
+        <select id="filter-category"><option value="">All categories</option></select>
+        <select id="filter-status">
+          <option value="">All</option>
+          <option value="fail">Failed only</option>
+          <option value="pass">Passed only</option>
+        </select>
+        <select id="filter-days">
+          <option value="7">Last 7 days</option>
+          <option value="14">Last 14 days</option>
+          <option value="30">Last 30 days</option>
+        </select>
+        <div class="mode-toggle">
+          <button class="mode-btn active" data-mode="breadth">Breadth</button>
+          <button class="mode-btn" data-mode="depth">Depth</button>
+        </div>
+        <button class="btn-sm" id="load-samples">Smart sample</button>
+      </div>
+      <div id="trace-list"></div>
+    </div>
+
+    <!-- MAP VIEW -->
+    <div id="view-map" class="view-panel" style="display:none">
+      <div class="section-desc">Clusters group traces by failure pattern. Larger = systematic. Click to drill in.</div>
+      <div class="controls">
+        <select id="map-days">
+          <option value="7">Last 7 days</option>
+          <option value="14">Last 14 days</option>
+          <option value="30">Last 30 days</option>
+        </select>
+      </div>
+      <div id="cluster-list"></div>
+    </div>
+
+    <!-- PROGRESS VIEW -->
+    <div id="view-progress" class="view-panel" style="display:none">
+      <div class="section-desc">Review progress — when new failure modes stop appearing, the taxonomy is complete.</div>
+      <div class="progress-grid" id="progress-grid"></div>
+    </div>
+
+  </main>
+</div>
+
+<!-- Fixed legend panel -->
+<div class="legend-panel" id="legend-panel">
+  <div class="legend-header">
+    <span class="legend-title">What these metrics mean</span>
+    <button class="legend-toggle" id="legend-toggle" title="Collapse">×</button>
+  </div>
+  <div class="legend-body">
+    <div class="legend-row">
+      <div class="legend-dot" style="background: #B0C9B0"></div>
+      <div class="legend-text"><strong>Pass rate</strong> — % of responses clearing all 7 policy checks. Above 95% = healthy.</div>
+    </div>
+    <div class="legend-row">
+      <div class="legend-dot" style="background: #E8B4B4"></div>
+      <div class="legend-text"><strong>Failed</strong> — responses that broke a policy rule (guarantee language, wrong escalation). Need human review.</div>
+    </div>
+    <div class="legend-row">
+      <div class="legend-dot" style="background: #E8D4A8"></div>
+      <div class="legend-text"><strong>Failure modes</strong> — distinct error patterns found. More early on is normal. Flatline = you've mapped them all.</div>
+    </div>
+    <div class="legend-row">
+      <div class="legend-dot" style="background: #B8C8D8"></div>
+      <div class="legend-text"><strong>Annotated</strong> — % of traces human-reviewed. Higher = more confident the failure taxonomy is complete.</div>
+    </div>
+    <div class="legend-row">
+      <div class="legend-dot" style="background: #C8C0D8"></div>
+      <div class="legend-text"><strong>Helpful score</strong> — user rating (1–3). 1 = not helpful, 3 = resolved. Low scores flag quality issues.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+let API_KEY = '';
+let allTraces = [];
+let clusters = {};
+let currentMode = 'breadth';
+let depthCluster = null;
+
+const FAILURE_MODES = [
+  'hallucinated_timeline', 'wrong_category', 'missing_empathy',
+  'guarantee_language', 'wrong_amount', 'generic_response',
+  'escalation_missed', 'tone_mismatch', 'incomplete_steps', 'other'
+];
+
+// --- Auth (key comes from URL, server already validated it) ---
+API_KEY = new URLSearchParams(window.location.search).get('key') || '';
+document.getElementById('admin-link').style.display = 'inline';
+document.getElementById('admin-link').href = `/admin?key=${API_KEY}`;
+
+function headers() { return { 'Authorization': `Bearer ${API_KEY}`, 'Content-Type': 'application/json' }; }
+
+loadAll();
+
+// --- Tabs ---
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.view-panel').forEach(v => v.style.display = 'none');
+    tab.classList.add('active');
+    document.getElementById(`view-${tab.dataset.view}`).style.display = 'block';
+    if (tab.dataset.view === 'map') loadClusters();
+    if (tab.dataset.view === 'progress') loadProgress();
+  });
+});
+
+// --- Mode toggle ---
+document.querySelectorAll('.mode-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentMode = btn.dataset.mode;
+    if (currentMode === 'breadth') { depthCluster = null; }
+    renderTraces();
+  });
+});
+
+document.getElementById('load-samples').addEventListener('click', loadSamples);
+document.getElementById('filter-category').addEventListener('change', renderTraces);
+document.getElementById('filter-status').addEventListener('change', renderTraces);
+document.getElementById('filter-days').addEventListener('change', () => loadTraces());
+document.getElementById('map-days').addEventListener('change', () => loadClusters());
+
+// --- Data loading ---
+async function loadAll() {
+  await Promise.all([loadTraces(), loadClusters()]);
+}
+
+async function loadTraces() {
+  const days = document.getElementById('filter-days').value;
+  const r = await fetch(`/admin/discovery/traces?days=${days}&limit=200`, { headers: headers() });
+  allTraces = await r.json();
+  populateCategoryFilter();
+  renderSummary();
+  renderTraces();
+}
+
+async function loadSamples() {
+  const days = document.getElementById('filter-days').value;
+  const r = await fetch(`/admin/discovery/samples?days=${days}&count=20`, { headers: headers() });
+  allTraces = await r.json();
+  renderTraces();
+}
+
+async function loadClusters() {
+  const days = document.getElementById('map-days').value;
+  const r = await fetch(`/admin/discovery/clusters?days=${days}`, { headers: headers() });
+  clusters = await r.json();
+  renderSummary();
+  renderClusters();
+}
+
+async function loadProgress() {
+  const r = await fetch('/admin/discovery/convergence?days=30', { headers: headers() });
+  const conv = await r.json();
+  renderProgress(conv);
+}
+
+// --- Legend toggle ---
+document.getElementById('legend-toggle').addEventListener('click', () => {
+  const panel = document.getElementById('legend-panel');
+  const btn = document.getElementById('legend-toggle');
+  if (panel.classList.contains('collapsed')) {
+    panel.classList.remove('collapsed');
+    btn.textContent = '×';
+    btn.title = 'Collapse';
+  } else {
+    panel.classList.add('collapsed');
+    btn.textContent = '?';
+    btn.title = 'Show metric definitions';
+  }
+});
+
+// --- Summary bar ---
+function renderSummary() {
+  const bar = document.getElementById('summary-bar');
+  const total = clusters.total_traces || allTraces.length;
+  const failed = clusters.failed_traces || allTraces.filter(t => !t.policy_passed).length;
+  const passRate = total ? ((total - failed) / total * 100).toFixed(1) : '100.0';
+  const modes = (clusters.failure_modes || []).length;
+  const annotated = clusters.annotated || 0;
+  const coverage = total ? (annotated / total * 100).toFixed(1) : '0.0';
+
+  const passOk = parseFloat(passRate) >= 95;
+
+  bar.innerHTML = `
+    <div class="summary-stat"><div class="stat-val">${total}</div><div class="stat-label">Total traces</div></div>
+    <div class="summary-stat ${failed > 0 ? 'bg-red' : 'bg-green'}"><div class="stat-val ${failed > 0 ? 'red' : 'green'}">${failed}</div><div class="stat-label">Failed</div></div>
+    <div class="summary-stat ${passOk ? 'bg-green' : 'bg-orange'}"><div class="stat-val ${passOk ? 'green' : 'orange'}">${passRate}%</div><div class="stat-label">Pass rate</div></div>
+    <div class="summary-stat bg-orange"><div class="stat-val orange">${modes}</div><div class="stat-label">Failure modes</div></div>
+    <div class="summary-stat bg-purple"><div class="stat-val blue">${coverage}%</div><div class="stat-label">Annotated</div></div>
+  `;
+
+  renderCategoryBreakdown();
+}
+
+function renderCategoryBreakdown() {
+  const container = document.getElementById('cat-breakdown');
+  const stats = clusters.category_stats || {};
+  const cats = Object.keys(stats).sort();
+  if (!cats.length) { container.innerHTML = ''; return; }
+
+  const catColors = { 'UPI_FAILURE': '#5A7D9A', 'POT_WITHDRAWAL': '#8B6B4A', 'OUT_OF_SCOPE': '#7A6B8A' };
+
+  container.innerHTML = cats.map(cat => {
+    const s = stats[cat];
+    const passOk = s.pass_rate >= 0.95;
+    const borderColor = catColors[cat] || '#B0BEC5';
+    const helpfulLabel = s.avg_helpful !== null ? `${s.avg_helpful}/3` : '—';
+    return `
+      <div class="cat-card" style="border-left-color:${borderColor}">
+        <div class="cat-card-name">${esc(cat.replace(/_/g, ' '))}</div>
+        <div class="cat-card-row"><span>Traces</span><span class="cat-card-val">${s.total}</span></div>
+        <div class="cat-card-row"><span>Pass rate</span><span class="cat-card-val" style="color:${passOk ? '#5B8C5A' : '#C25858'}">${(s.pass_rate * 100).toFixed(1)}%</span></div>
+        <div class="cat-card-row"><span>Avg helpful</span><span class="cat-card-val">${helpfulLabel}</span></div>
+        <div class="cat-card-row"><span>Failed</span><span class="cat-card-val" style="color:${s.failed > 0 ? '#C25858' : '#5B8C5A'}">${s.failed}</span></div>
+      </div>`;
+  }).join('');
+}
+
+function populateCategoryFilter() {
+  const sel = document.getElementById('filter-category');
+  const cats = [...new Set(allTraces.map(t => t.category))].sort();
+  sel.innerHTML = '<option value="">All categories</option>' + cats.map(c => `<option value="${c}">${c}</option>`).join('');
+}
+
+// --- Content view ---
+function renderTraces() {
+  const container = document.getElementById('trace-list');
+  const catFilter = document.getElementById('filter-category').value;
+  const statusFilter = document.getElementById('filter-status').value;
+
+  let filtered = allTraces;
+  if (catFilter) filtered = filtered.filter(t => t.category === catFilter);
+  if (statusFilter === 'fail') filtered = filtered.filter(t => !t.policy_passed);
+  if (statusFilter === 'pass') filtered = filtered.filter(t => t.policy_passed);
+
+  if (currentMode === 'breadth' && !depthCluster) {
+    const seen = new Set();
+    const breadthPicks = [];
+    for (const t of filtered) {
+      const key = t.policy_failures.length ? t.policy_failures[0].rule_id || 'unknown' : (t.policy_passed ? 'passing' : 'unknown');
+      if (!seen.has(key)) { seen.add(key); breadthPicks.push(t); }
+    }
+    for (const t of filtered) { if (!breadthPicks.includes(t)) breadthPicks.push(t); }
+    filtered = breadthPicks;
+  }
+
+  if (currentMode === 'depth' && depthCluster) {
+    filtered = filtered.filter(t => {
+      if (depthCluster === 'low_score') return t.helpful_score === 1;
+      return t.policy_failures.some(f => `${f.rule_id || 'unknown'}:${f.reason_code || 'unknown'}` === depthCluster);
+    });
+  }
+
+  if (!filtered.length) {
+    container.innerHTML = '<div class="empty-state"><div class="emoji">🔍</div><p>No traces match these filters.</p></div>';
+    return;
+  }
+
+  container.innerHTML = filtered.map(t => traceCardHTML(t)).join('');
+  container.querySelectorAll('.trace-header').forEach(h => {
+    h.addEventListener('click', () => h.closest('.trace-card').classList.toggle('expanded'));
+  });
+  container.querySelectorAll('.ann-form').forEach(form => {
+    form.querySelector('.ann-submit').addEventListener('click', () => submitAnnotation(form));
+  });
+}
+
+function traceCardHTML(t) {
+  const checks = (t.policy_checks || []).map(c =>
+    `<div class="check-row ${c.passed ? 'check-pass' : 'check-fail'}">${c.passed ? '✓' : '✗'} ${esc(c.rule_id || '')} — ${esc(c.explanation || '')}</div>`
+  ).join('');
+
+  const scoreLabel = t.helpful_score !== null ? `${t.helpful_score}/3` : '—';
+  const judgeLabel = t.llm_judge_score !== null ? `Judge: ${t.llm_judge_score}` : '';
+  const sampleReason = t._sample_reason ? `<span class="badge" style="background:#F3E5F5;color:#7B1FA2">${esc(t._sample_reason)}</span>` : '';
+
+  return `
+    <div class="trace-card" data-eval-id="${t.eval_id}">
+      <div class="trace-header">
+        <div>
+          <span class="trace-cat">${esc(t.category)}</span>
+          <span class="trace-id">${t.eval_id.substring(0, 8)}</span>
+        </div>
+        <div class="trace-badges">
+          ${sampleReason}
+          <span class="badge ${t.policy_passed ? 'badge-pass' : 'badge-fail'}">${t.policy_passed ? 'PASS' : 'FAIL'}</span>
+          <span class="badge badge-score">${scoreLabel}</span>
+          ${judgeLabel ? `<span class="badge badge-judge">${judgeLabel}</span>` : ''}
+        </div>
+      </div>
+      <div class="trace-body">
+        <div class="trace-response">${esc(t.response_text)}</div>
+        ${checks ? `<div class="trace-checks">${checks}</div>` : ''}
+        ${t.failure_freetext ? `<div style="font-size:12px;color:#666;margin-bottom:10px"><strong>Notes:</strong> ${esc(t.failure_freetext)}</div>` : ''}
+        <div class="annotation-form ann-form" data-eval-id="${t.eval_id}">
+          <h4>Annotate</h4>
+          <select class="ann-mode">
+            ${FAILURE_MODES.map(m => `<option value="${m}">${m.replace(/_/g, ' ')}</option>`).join('')}
+          </select>
+          <textarea class="ann-text" placeholder="What went wrong? What should the response have said?"></textarea>
+          <button class="ann-submit">Save annotation</button>
+          <span class="annotation-saved">Saved!</span>
+        </div>
+      </div>
+    </div>`;
+}
+
+async function submitAnnotation(form) {
+  const evalId = form.dataset.evalId;
+  const mode = form.querySelector('.ann-mode').value;
+  const text = form.querySelector('.ann-text').value.trim();
+  if (!text) return;
+  await fetch('/admin/discovery/annotate', {
+    method: 'POST', headers: headers(),
+    body: JSON.stringify({ eval_id: evalId, annotation_text: text, failure_mode: mode, reviewer: 'admin' }),
+  });
+  form.querySelector('.annotation-saved').style.display = 'inline';
+  form.querySelector('.ann-submit').disabled = true;
+  setTimeout(() => { form.querySelector('.annotation-saved').style.display = 'none'; }, 2000);
+}
+
+// --- Map view ---
+function renderClusters() {
+  const container = document.getElementById('cluster-list');
+  const modes = clusters.failure_modes || [];
+  if (!modes.length) {
+    container.innerHTML = '<div class="empty-state"><div class="emoji">✅</div><p>No failure clusters found. All traces passing.</p></div>';
+    return;
+  }
+
+  const maxCount = Math.max(...modes.map(m => m.count));
+
+  container.innerHTML = modes.map(m => {
+    const barPct = (m.count / maxCount * 100).toFixed(0);
+    const barColor = m.severity === 'high' ? '#f44336' : m.severity === 'medium' ? '#FF9800' : '#4CAF50';
+    const cats = Object.entries(m.categories).map(([c, n]) => `<span class="cat-chip">${esc(c)} (${n})</span>`).join('');
+    return `
+      <div class="cluster-card" data-mode-id="${esc(m.mode_id)}">
+        <div class="cluster-header">
+          <div>
+            <div class="cluster-name">${esc(m.mode_id.replace(/_/g, ' '))}</div>
+            <div class="cluster-meta">${esc(m.sample_explanation).substring(0, 80)}</div>
+          </div>
+          <div class="cluster-count ${m.severity}">${m.count}</div>
+        </div>
+        <div class="cluster-bar"><div class="cluster-bar-fill" style="width:${barPct}%;background:${barColor}"></div></div>
+        <div class="cluster-categories">${cats}</div>
+      </div>`;
+  }).join('');
+
+  container.querySelectorAll('.cluster-card').forEach(card => {
+    card.addEventListener('click', () => {
+      depthCluster = card.dataset.modeId;
+      currentMode = 'depth';
+      document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+      document.querySelector('.mode-btn[data-mode="depth"]').classList.add('active');
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelector('.tab[data-view="content"]').classList.add('active');
+      document.querySelectorAll('.view-panel').forEach(v => v.style.display = 'none');
+      document.getElementById('view-content').style.display = 'block';
+      renderTraces();
+    });
+  });
+}
+
+// --- Progress view ---
+function renderProgress(conv) {
+  const grid = document.getElementById('progress-grid');
+  const timeline = conv.timeline || [];
+  const modes = conv.modes || [];
+  const hasAnnotations = conv.total_annotations > 0;
+
+  if (!hasAnnotations) {
+    grid.innerHTML = `
+      <div class="getting-started" style="grid-column: 1 / -1">
+        <h3>Getting started with Error Discovery</h3>
+        <p>Annotate traces to build a failure taxonomy. Progress charts appear once you start reviewing.</p>
+        <div class="gs-steps">
+          <div class="gs-step" style="background:#F0F7F0">
+            <div class="gs-step-num" style="background:#5B8C5A">1</div>
+            <div class="gs-step-content">
+              <div class="gs-step-title">Browse traces</div>
+              <div class="gs-step-desc">Go to Content tab and expand agent responses</div>
+            </div>
+          </div>
+          <div class="gs-step" style="background:#FDF6ED">
+            <div class="gs-step-num" style="background:#B8883B">2</div>
+            <div class="gs-step-content">
+              <div class="gs-step-title">Annotate failures</div>
+              <div class="gs-step-desc">Select a failure mode and describe what went wrong</div>
+            </div>
+          </div>
+          <div class="gs-step" style="background:#F0F4F8">
+            <div class="gs-step-num" style="background:#5A7D9A">3</div>
+            <div class="gs-step-content">
+              <div class="gs-step-title">Watch patterns</div>
+              <div class="gs-step-desc">Convergence and taxonomy charts populate here</div>
+            </div>
+          </div>
+        </div>
+      </div>`;
+    return;
+  }
+
+  const chartBars = timeline.map((d, i) => {
+    const h = d.new_modes > 0 ? Math.max(20, d.new_modes * 30) : 4;
+    const left = i * 52;
+    return `<div class="convergence-bar" style="left:${left}px;height:${h}px;width:36px;background:${d.new_modes > 0 ? '#FF5722' : '#E0E0E0'}">
+      <div class="convergence-label">${d.date.substring(5)}</div>
+    </div>`;
+  }).join('');
+
+  const coveragePct = clusters.coverage ? (clusters.coverage * 100).toFixed(1) : '0.0';
+  const coverageColor = parseFloat(coveragePct) >= 50 ? '#5B8C5A' : parseFloat(coveragePct) >= 20 ? '#B8883B' : '#C25858';
+
+  grid.innerHTML = `
+    <div class="progress-card">
+      <h3>Convergence</h3>
+      <div class="progress-subtitle">New failure types per day — flatline means you've found them all.</div>
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+        <span class="converge-badge ${conv.converging ? 'converge-yes' : 'converge-no'}">${conv.converging ? 'Converging' : 'Still discovering'}</span>
+        <span style="font-size:13px;color:#666">${conv.total_modes} mode${conv.total_modes !== 1 ? 's' : ''}</span>
+      </div>
+      <div class="convergence-chart" style="min-height:100px;overflow-x:auto">
+        ${chartBars}
+      </div>
+    </div>
+    <div class="progress-card">
+      <h3>Failure taxonomy</h3>
+      <div class="progress-subtitle">Known failure types — prioritize policy fixes by frequency.</div>
+      ${modes.length ? `<ul class="mode-list">${modes.map(m => `<li><span>${esc(m.replace(/_/g, ' '))}</span></li>`).join('')}</ul>` : '<p style="color:#999;font-size:13px">No modes discovered yet.</p>'}
+    </div>
+    <div class="progress-card">
+      <h3>Review velocity</h3>
+      <div class="progress-subtitle">Annotations completed — drives taxonomy maturity.</div>
+      <div style="display:flex;align-items:baseline;gap:8px;margin-top:8px">
+        <div class="stat-val" style="font-size:32px">${conv.total_annotations}</div>
+        <span style="font-size:13px;color:#888">annotations</span>
+      </div>
+      ${timeline.length ? `<div style="margin-top:10px;font-size:12px;color:#666">Latest: ${timeline[timeline.length - 1].annotations} on ${timeline[timeline.length - 1].date}</div>` : ''}
+    </div>
+    <div class="progress-card">
+      <h3>Coverage</h3>
+      <div class="progress-subtitle">Goal: review at least one trace per failure mode.</div>
+      <div style="display:flex;align-items:baseline;gap:8px;margin-top:8px">
+        <div class="stat-val" style="font-size:32px;color:${coverageColor}">${coveragePct}%</div>
+        <span style="font-size:13px;color:#888">reviewed</span>
+      </div>
+      <div style="margin-top:10px;font-size:12px;color:#666">${clusters.annotated || 0} of ${clusters.total_traces || 0} traces</div>
+    </div>
+  `;
+}
+
+function esc(s) { return (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+
+</script>
+</body>
+</html>

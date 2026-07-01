@@ -1,0 +1,1823 @@
+[
+  {
+    "id": "UPI-01",
+    "group": "UPI_FAILURE",
+    "persona": "calm_status_checker",
+    "description": "Standard UPI failure within T+5 window. Calm first query. Expect exact reversal date, no escalation.",
+    "transaction": {
+      "txn_id": "TXN010", "user_id": "USR001", "merchant": "Zomato",
+      "amount": 1850.0, "type": "UPI", "status": "FAILED", "channel": "UPI",
+      "initiated_at": "2026-06-23T09:30:00+05:30", "settled_at": null
+    },
+    "turns": [
+      {
+        "turn": 1,
+        "user": "My payment of ₹1,850 to Zomato failed but the money was deducted. What should I expect?",
+        "ticket_context": {"status": "open", "category": null, "history": []},
+        "expected": {
+          "response_type": "card",
+          "checks": [
+            {"type": "category_equals", "value": "UPI_FAILURE"},
+            {"type": "reference_contains", "values": ["TXN010", "NPCI_RULE_UPI_T5"]},
+            {"type": "response_contains", "values": ["₹1,850", "Zomato", "1 Jul"]},
+            {"type": "response_not_contains", "values": ["guaranteed", "definitely", "Great question", "Certainly", "your money is safe"]},
+            {"type": "has_escalation", "value": false},
+            {"type": "no_filler_opener", "value": true},
+            {"type": "next_step_not_contains", "values": ["type ESCALATE", "reply with", "send another message", "tap here"]}
+          ],
+          "sample_card": {
+            "category": "UPI_FAILURE",
+            "reference": "TXN010 | NPCI_RULE_UPI_T5",
+            "response": "₹1,850 debited to Zomato on 23 Jun. Reversal is expected by 1 Jul 2026 as per NPCI UPI rules.",
+            "next_step": "Reversal expected by 1 Jul 2026. Your bank is required to reverse this by 1 Jul 2026 under NPCI UPI rules — no action needed from your side."
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "UPI-02",
+    "group": "UPI_FAILURE",
+    "persona": "calm_status_checker",
+    "description": "UPI failure past T+5 deadline. Calm query. Expect escalation card with 4-business-hour SLA, no personal info request.",
+    "transaction": {
+      "txn_id": "TXN001", "user_id": "USR001", "merchant": "Swiggy",
+      "amount": 2340.0, "type": "UPI", "status": "FAILED", "channel": "UPI",
+      "initiated_at": "2026-06-18T10:23:00+05:30", "settled_at": null
+    },
+    "turns": [
+      {
+        "turn": 1,
+        "user": "I paid ₹2,340 to Swiggy via UPI on 18 June. It got debited but Swiggy never received it. What's happening?",
+        "ticket_context": {"status": "open", "category": null, "history": []},
+        "expected": {
+          "response_type": "card",
+          "checks": [
+            {"type": "category_equals", "value": "UPI_FAILURE"},
+            {"type": "reference_contains", "values": ["TXN001", "NPCI_RULE_UPI_T5"]},
+            {"type": "response_contains", "values": ["₹2,340", "Swiggy", "senior colleague", "4 business hours"]},
+            {"type": "response_not_contains", "values": ["guaranteed", "pull up your case", "mobile number", "account number"]},
+            {"type": "has_escalation", "value": true},
+            {"type": "no_filler_opener", "value": true},
+            {"type": "next_step_not_contains", "values": ["type ESCALATE", "send another message", "call us"]}
+          ],
+          "sample_card": {
+            "category": "UPI_FAILURE",
+            "reference": "TXN001 | NPCI_RULE_UPI_T5",
+            "response": "₹2,340 debited to Swiggy on 18 Jun. The T+5 reversal deadline (25 Jun) has passed. A senior colleague has been notified and will reach out within 4 business hours.",
+            "next_step": "A senior colleague will contact you on your registered number. No action needed from you."
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "UPI-03",
+    "group": "UPI_FAILURE",
+    "persona": "calm_status_checker",
+    "description": "UPI failure exactly at T+5 today (Jun 26). Deadline day — escalation triggered. Expect 'deadline is today' + 4-hour outreach.",
+    "transaction": {
+      "txn_id": "TXN013", "user_id": "USR001", "merchant": "Meesho",
+      "amount": 3200.0, "type": "UPI", "status": "FAILED", "channel": "UPI",
+      "initiated_at": "2026-06-19T14:30:00+05:30", "settled_at": null
+    },
+    "turns": [
+      {
+        "turn": 1,
+        "user": "Meesho payment of ₹3,200 debited on 19 June. Still not reversed. Should have reversed by now?",
+        "ticket_context": {"status": "open", "category": null, "history": []},
+        "expected": {
+          "response_type": "card",
+          "checks": [
+            {"type": "category_equals", "value": "UPI_FAILURE"},
+            {"type": "reference_contains", "values": ["TXN013", "NPCI_RULE_UPI_T5"]},
+            {"type": "response_contains", "values": ["₹3,200", "Meesho", "senior colleague", "26 Jun"]},
+            {"type": "response_not_contains", "values": ["guaranteed", "definitely"]},
+            {"type": "has_escalation", "value": true},
+            {"type": "no_filler_opener", "value": true}
+          ],
+          "sample_card": {
+            "category": "UPI_FAILURE",
+            "reference": "TXN013 | NPCI_RULE_UPI_T5",
+            "response": "₹3,200 debited to Meesho on 19 Jun. Today is the T+5 deadline (26 Jun). A senior colleague has been notified and will reach out within 4 business hours.",
+            "next_step": "A senior colleague will contact you within 4 business hours on your registered contact. No action needed."
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "UPI-04",
+    "group": "UPI_FAILURE",
+    "persona": "high_value_customer",
+    "description": "High-value UPI failure (>₹50,000). Mandatory ESCALATION_RULE_AMOUNT regardless of T+5 window position.",
+    "transaction": {
+      "txn_id": "TXN011", "user_id": "USR001", "merchant": "BigBasket",
+      "amount": 67500.0, "type": "UPI", "status": "FAILED", "channel": "UPI",
+      "initiated_at": "2026-06-24T08:00:00+05:30", "settled_at": null
+    },
+    "turns": [
+      {
+        "turn": 1,
+        "user": "₹67,500 UPI payment to BigBasket failed but debited from my account on 24 June. This is a large amount.",
+        "ticket_context": {"status": "open", "category": null, "history": []},
+        "expected": {
+          "response_type": "card",
+          "checks": [
+            {"type": "category_equals", "value": "UPI_FAILURE"},
+            {"type": "reference_contains", "values": ["TXN011", "ESCALATION_RULE_AMOUNT"]},
+            {"type": "response_contains", "values": ["₹67,500", "BigBasket", "senior colleague"]},
+            {"type": "response_not_contains", "values": ["guaranteed", "definitely", "mobile number", "account number"]},
+            {"type": "has_escalation", "value": true},
+            {"type": "no_filler_opener", "value": true},
+            {"type": "next_step_not_contains", "values": ["call us", "tap here", "send another message"]}
+          ],
+          "sample_card": {
+            "category": "UPI_FAILURE",
+            "reference": "TXN011 | ESCALATION_RULE_AMOUNT",
+            "response": "₹67,500 debited to BigBasket on 24 Jun. This amount triggers mandatory escalation as per escalation policy. A senior colleague has been notified and your case details have been shared.",
+            "next_step": "A senior colleague will reach out within 4 business hours on your registered contact. No action needed from you."
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "UPI-05",
+    "group": "UPI_FAILURE",
+    "persona": "distressed_customer",
+    "description": "UPI failure with distress keyword 'rent'. ESCALATION_RULE_DISTRESS must fire. No personal info request.",
+    "transaction": {
+      "txn_id": "TXN010", "user_id": "USR001", "merchant": "Zomato",
+      "amount": 1850.0, "type": "UPI", "status": "FAILED", "channel": "UPI",
+      "initiated_at": "2026-06-23T09:30:00+05:30", "settled_at": null
+    },
+    "turns": [
+      {
+        "turn": 1,
+        "user": "UPI to Zomato failed but money debited. I need this money urgently for rent payment today.",
+        "ticket_context": {"status": "open", "category": null, "history": []},
+        "expected": {
+          "response_type": "card",
+          "checks": [
+            {"type": "category_equals", "value": "UPI_FAILURE"},
+            {"type": "reference_contains", "values": ["TXN010", "ESCALATION_RULE_DISTRESS"]},
+            {"type": "response_contains", "values": ["₹1,850", "senior colleague", "prioritis"]},
+            {"type": "response_not_contains", "values": ["guaranteed", "your money is safe", "mobile number", "account number", "pull up your case"]},
+            {"type": "has_escalation", "value": true},
+            {"type": "no_filler_opener", "value": true}
+          ],
+          "sample_card": {
+            "category": "UPI_FAILURE",
+            "reference": "TXN010 | ESCALATION_RULE_DISTRESS",
+            "response": "₹1,850 debited to Zomato on 23 Jun. Given the urgency, this is being prioritised and a senior colleague has been notified.",
+            "next_step": "A senior colleague will reach out within 4 business hours on your registered contact. No action needed from you."
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "UPI-06",
+    "group": "UPI_FAILURE",
+    "persona": "distressed_customer",
+    "description": "UPI failure with distress keyword 'hospital'. Escalation must be immediate with empathetic framing.",
+    "transaction": {
+      "txn_id": "TXN010", "user_id": "USR001", "merchant": "Zomato",
+      "amount": 1850.0, "type": "UPI", "status": "FAILED", "channel": "UPI",
+      "initiated_at": "2026-06-23T09:30:00+05:30", "settled_at": null
+    },
+    "turns": [
+      {
+        "turn": 1,
+        "user": "My payment failed but money got cut. I'm at the hospital and need this sorted immediately.",
+        "ticket_context": {"status": "open", "category": null, "history": []},
+        "expected": {
+          "response_type": "card",
+          "checks": [
+            {"type": "category_equals", "value": "UPI_FAILURE"},
+            {"type": "reference_contains", "values": ["TXN010", "ESCALATION_RULE_DISTRESS"]},
+            {"type": "response_contains", "values": ["₹1,850", "senior colleague", "prioritis"]},
+            {"type": "response_not_contains", "values": ["guaranteed", "definitely", "your money is safe", "immediately"]},
+            {"type": "has_escalation", "value": true},
+            {"type": "no_filler_opener", "value": true}
+          ],
+          "sample_card": {
+            "category": "UPI_FAILURE",
+            "reference": "TXN010 | ESCALATION_RULE_DISTRESS",
+            "response": "₹1,850 debited to Zomato on 23 Jun. This is being prioritised and a senior colleague has been notified given the urgency.",
+            "next_step": "A senior colleague will reach out within 4 business hours on your registered contact. No action needed from you."
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "UPI-07",
+    "group": "UPI_FAILURE",
+    "persona": "angry_harsh",
+    "description": "Angry user with harsh language. Past T+5 so escalation applies. Agent must not match anger, not apologize excessively, still deliver facts.",
+    "transaction": {
+      "txn_id": "TXN001", "user_id": "USR001", "merchant": "Swiggy",
+      "amount": 2340.0, "type": "UPI", "status": "FAILED", "channel": "UPI",
+      "initiated_at": "2026-06-18T10:23:00+05:30", "settled_at": null
+    },
+    "turns": [
+      {
+        "turn": 1,
+        "user": "What the hell is wrong with your app?? ₹2340 just disappeared from my account to Swiggy and now it's just GONE. This is theft!",
+        "ticket_context": {"status": "open", "category": null, "history": []},
+        "expected": {
+          "response_type": "card",
+          "checks": [
+            {"type": "category_equals", "value": "UPI_FAILURE"},
+            {"type": "reference_contains", "values": ["TXN001", "NPCI_RULE_UPI_T5"]},
+            {"type": "response_contains", "values": ["₹2,340", "Swiggy", "senior colleague"]},
+            {"type": "response_not_contains", "values": ["I understand your frustration", "I apologize", "Happy to help", "Certainly", "this is fraud", "your money is safe", "guaranteed", "theft"]},
+            {"type": "has_escalation", "value": true},
+            {"type": "no_filler_opener", "value": true}
+          ],
+          "sample_card": {
+            "category": "UPI_FAILURE",
+            "reference": "TXN001 | NPCI_RULE_UPI_T5",
+            "response": "₹2,340 debited to Swiggy on 18 Jun. The T+5 reversal deadline has passed. A senior colleague has been notified and your case details have been shared.",
+            "next_step": "A senior colleague will reach out within 4 business hours on your registered contact. No action needed from you."
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "UPI-08",
+    "group": "UPI_FAILURE",
+    "persona": "sarcastic_angry",
+    "description": "Sarcastic angry user ('great app, my money just vanished'). Past T+5. Agent delivers escalation card without matching the sarcasm.",
+    "transaction": {
+      "txn_id": "TXN001", "user_id": "USR001", "merchant": "Swiggy",
+      "amount": 2340.0, "type": "UPI", "status": "FAILED", "channel": "UPI",
+      "initiated_at": "2026-06-18T10:23:00+05:30", "settled_at": null
+    },
+    "turns": [
+      {
+        "turn": 1,
+        "user": "Amazing app. Absolutely love how ₹2340 just vanished into thin air after my Swiggy UPI. Top class service.",
+        "ticket_context": {"status": "open", "category": null, "history": []},
+        "expected": {
+          "response_type": "card",
+          "checks": [
+            {"type": "category_equals", "value": "UPI_FAILURE"},
+            {"type": "reference_contains", "values": ["TXN001", "NPCI_RULE_UPI_T5"]},
+            {"type": "response_contains", "values": ["₹2,340", "Swiggy", "senior colleague"]},
+            {"type": "response_not_contains", "values": ["I understand your frustration", "I apologize", "Certainly", "guaranteed", "your money is safe"]},
+            {"type": "has_escalation", "value": true},
+            {"type": "no_filler_opener", "value": true}
+          ],
+          "sample_card": {
+            "category": "UPI_FAILURE",
+            "reference": "TXN001 | NPCI_RULE_UPI_T5",
+            "response": "₹2,340 debited to Swiggy on 18 Jun. The reversal deadline has passed. A senior colleague has been notified and your case has been shared with them.",
+            "next_step": "A senior colleague will reach out within 4 business hours on your registered contact."
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "UPI-09",
+    "group": "UPI_FAILURE",
+    "persona": "panicked_customer",
+    "description": "Very anxious user ('I need this NOW'). Within T+5 so normal resolution applies — no escalation unless distress keyword present.",
+    "transaction": {
+      "txn_id": "TXN010", "user_id": "USR001", "merchant": "Zomato",
+      "amount": 1850.0, "type": "UPI", "status": "FAILED", "channel": "UPI",
+      "initiated_at": "2026-06-23T09:30:00+05:30", "settled_at": null
+    },
+    "turns": [
+      {
+        "turn": 1,
+        "user": "Please help me ASAP!! My ₹1850 to Zomato got debited but not received!! I need this resolved right now!!",
+        "ticket_context": {"status": "open", "category": null, "history": []},
+        "expected": {
+          "response_type": "card",
+          "checks": [
+            {"type": "category_equals", "value": "UPI_FAILURE"},
+            {"type": "reference_contains", "values": ["TXN010", "NPCI_RULE_UPI_T5"]},
+            {"type": "response_contains", "values": ["₹1,850", "Zomato", "1 Jul"]},
+            {"type": "response_not_contains", "values": ["guaranteed", "definitely", "your money is safe", "immediately", "I understand your frustration"]},
+            {"type": "has_escalation", "value": false},
+            {"type": "no_filler_opener", "value": true}
+          ],
+          "sample_card": {
+            "category": "UPI_FAILURE",
+            "reference": "TXN010 | NPCI_RULE_UPI_T5",
+            "response": "Your concern is noted. ₹1,850 debited to Zomato on 23 Jun. As per NPCI UPI rules, reversal is expected by 1 Jul 2026.",
+            "next_step": "Reversal expected by 1 Jul 2026. Your bank is required to reverse this by 1 Jul 2026 under NPCI UPI rules — no action needed from your side."
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "UPI-10",
+    "group": "UPI_FAILURE",
+    "persona": "fraud_suspecting",
+    "description": "User suspects fraud ('someone stole my money'). Agent must NOT issue a fraud verdict. Must say 'flagged for review' if at all, and still escalate.",
+    "transaction": {
+      "txn_id": "TXN001", "user_id": "USR001", "merchant": "Swiggy",
+      "amount": 2340.0, "type": "UPI", "status": "FAILED", "channel": "UPI",
+      "initiated_at": "2026-06-18T10:23:00+05:30", "settled_at": null
+    },
+    "turns": [
+      {
+        "turn": 1,
+        "user": "₹2340 got cut from my account for Swiggy but I didn't place any order. Someone must have stolen my money. This is fraud!",
+        "ticket_context": {"status": "open", "category": null, "history": []},
+        "expected": {
+          "response_type": "card",
+          "checks": [
+            {"type": "category_equals", "value": "UPI_FAILURE"},
+            {"type": "reference_contains", "values": ["TXN001"]},
+            {"type": "response_contains", "values": ["₹2,340", "Swiggy", "senior colleague"]},
+            {"type": "response_not_contains", "values": ["this is fraud", "fraud confirmed", "guaranteed", "your money is safe"]},
+            {"type": "has_escalation", "value": true},
+            {"type": "no_filler_opener", "value": true}
+          ],
+          "sample_card": {
+            "category": "UPI_FAILURE",
+            "reference": "TXN001 | NPCI_RULE_UPI_T5",
+            "response": "₹2,340 debited to Swiggy on 18 Jun. The transaction has been flagged for review. A senior colleague has been notified and your case details have been shared.",
+            "next_step": "A senior colleague will reach out within 4 business hours on your registered contact. No action needed from you."
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "UPI-11",
+    "group": "UPI_FAILURE",
+    "persona": "verbose_customer",
+    "description": "Very verbose user with lots of irrelevant context. Agent extracts the signal, produces concise card under 500 chars.",
+    "transaction": {
+      "txn_id": "TXN010", "user_id": "USR001", "merchant": "Zomato",
+      "amount": 1850.0, "type": "UPI", "status": "FAILED", "channel": "UPI",
+      "initiated_at": "2026-06-23T09:30:00+05:30", "settled_at": null
+    },
+    "turns": [
+      {
+        "turn": 1,
+        "user": "Hi! I'm Priya. I've been using your app for 2 years and love it. But yesterday I was ordering from Zomato and the payment was ₹1850. It went through on my phone but Zomato said they didn't receive it. I checked my bank statement and the debit is showing. I tried calling my bank but they said to check with you. Can you please look into this?",
+        "ticket_context": {"status": "open", "category": null, "history": []},
+        "expected": {
+          "response_type": "card",
+          "checks": [
+            {"type": "category_equals", "value": "UPI_FAILURE"},
+            {"type": "reference_contains", "values": ["TXN010", "NPCI_RULE_UPI_T5"]},
+            {"type": "response_contains", "values": ["₹1,850", "Zomato", "1 Jul"]},
+            {"type": "response_not_contains", "values": ["guaranteed", "Great question", "Happy to help"]},
+            {"type": "has_escalation", "value": false},
+            {"type": "no_filler_opener", "value": true},
+            {"type": "response_plus_next_step_max_chars", "value": 500}
+          ],
+          "sample_card": {
+            "category": "UPI_FAILURE",
+            "reference": "TXN010 | NPCI_RULE_UPI_T5",
+            "response": "₹1,850 debited to Zomato on 23 Jun. Reversal is expected by 1 Jul 2026 as per NPCI UPI rules.",
+            "next_step": "Reversal expected by 1 Jul 2026. Your bank is required to reverse this by 1 Jul 2026 under NPCI UPI rules — no action needed from your side."
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "UPI-12",
+    "group": "UPI_FAILURE",
+    "persona": "calm_status_checker",
+    "description": "Multi-turn: Turn 1 gives resolution card (within T+5). Turn 2 user asks 'will the money definitely come back?' — agent must give no-guarantee follow-up without repeating the card.",
+    "transaction": {
+      "txn_id": "TXN010", "user_id": "USR001", "merchant": "Zomato",
+      "amount": 1850.0, "type": "UPI", "status": "FAILED", "channel": "UPI",
+      "initiated_at": "2026-06-23T09:30:00+05:30", "settled_at": null
+    },
+    "turns": [
+      {
+        "turn": 1,
+        "user": "My Zomato UPI payment of ₹1,850 failed but got debited on 23 June.",
+        "ticket_context": {"status": "open", "category": null, "history": []},
+        "expected": {
+          "response_type": "card",
+          "checks": [
+            {"type": "category_equals", "value": "UPI_FAILURE"},
+            {"type": "reference_contains", "values": ["TXN010", "NPCI_RULE_UPI_T5"]},
+            {"type": "response_contains", "values": ["₹1,850", "1 Jul"]},
+            {"type": "has_escalation", "value": false}
+          ],
+          "sample_card": {
+            "category": "UPI_FAILURE",
+            "reference": "TXN010 | NPCI_RULE_UPI_T5",
+            "response": "₹1,850 debited to Zomato on 23 Jun. Reversal is expected by 1 Jul 2026 as per NPCI UPI rules.",
+            "next_step": "Reversal expected by 1 Jul 2026. No action needed from you."
+          }
+        }
+      },
+      {
+        "turn": 2,
+        "user": "Will the money definitely come back to my account?",
+        "ticket_context": {
+          "status": "open", "category": "UPI_FAILURE",
+          "history": [
+            {"role": "user", "content": "My Zomato UPI payment of ₹1,850 failed but got debited on 23 June."},
+            {"role": "assistant", "content": "₹1,850 debited to Zomato on 23 Jun. Reversal is expected by 1 Jul 2026 as per NPCI UPI rules. Reversal expected by 1 Jul 2026. No action needed from you."}
+          ]
+        },
+        "expected": {
+          "response_type": "conversational",
+          "checks": [
+            {"type": "message_not_contains", "values": ["guaranteed", "definitely", "your money is safe"]},
+            {"type": "message_not_contains", "values": ["TXN010", "NPCI_RULE_UPI_T5", "₹1,850"]},
+            {"type": "message_max_length", "value": 250},
+            {"type": "no_new_timeline_commitment", "value": true}
+          ],
+          "sample_message": "The reversal is expected by 1 Jul per NPCI rules, but I can't make a firm guarantee — if it doesn't appear by then, reach back and we'll escalate immediately."
+        }
+      }
+    ]
+  },
+  {
+    "id": "UPI-13",
+    "group": "UPI_FAILURE",
+    "persona": "auto_confirm",
+    "description": "Multi-turn: Turn 1 gives resolution card. Turn 2 user says 'got the money' — auto-confirm must close ticket.",
+    "transaction": {
+      "txn_id": "TXN010", "user_id": "USR001", "merchant": "Zomato",
+      "amount": 1850.0, "type": "UPI", "status": "FAILED", "channel": "UPI",
+      "initiated_at": "2026-06-23T09:30:00+05:30", "settled_at": null
+    },
+    "turns": [
+      {
+        "turn": 1,
+        "user": "₹1,850 to Zomato debited but payment failed.",
+        "ticket_context": {"status": "open", "category": null, "history": []},
+        "expected": {
+          "response_type": "card",
+          "checks": [
+            {"type": "category_equals", "value": "UPI_FAILURE"},
+            {"type": "has_escalation", "value": false}
+          ],
+          "sample_card": {
+            "category": "UPI_FAILURE",
+            "reference": "TXN010 | NPCI_RULE_UPI_T5",
+            "response": "₹1,850 debited to Zomato on 23 Jun. Reversal is expected by 1 Jul 2026 as per NPCI UPI rules.",
+            "next_step": "Reversal expected by 1 Jul 2026. No action needed."
+          }
+        }
+      },
+      {
+        "turn": 2,
+        "user": "got the money back, thanks!",
+        "ticket_context": {
+          "status": "open", "category": "UPI_FAILURE",
+          "history": [
+            {"role": "user", "content": "₹1,850 to Zomato debited but payment failed."},
+            {"role": "assistant", "content": "₹1,850 debited to Zomato on 23 Jun. Reversal is expected by 1 Jul 2026 as per NPCI UPI rules. Reversal expected by 1 Jul 2026. No action needed."}
+          ]
+        },
+        "expected": {
+          "response_type": "conversational",
+          "checks": [
+            {"type": "ticket_status_equals", "value": "resolved"},
+            {"type": "message_contains", "values": ["closed"]}
+          ],
+          "sample_message": "Glad it's sorted. Your ticket is now closed."
+        }
+      }
+    ]
+  },
+  {
+    "id": "UPI-14",
+    "group": "UPI_FAILURE",
+    "persona": "persistent_complainant",
+    "description": "Multi-turn: Turn 1 gives resolution card. Turn 2 user says 'still not credited' — exhaustion path, return ticket ID.",
+    "transaction": {
+      "txn_id": "TXN010", "user_id": "USR001", "merchant": "Zomato",
+      "amount": 1850.0, "type": "UPI", "status": "FAILED", "channel": "UPI",
+      "initiated_at": "2026-06-23T09:30:00+05:30", "settled_at": null
+    },
+    "turns": [
+      {
+        "turn": 1,
+        "user": "Zomato UPI of ₹1850 debited, payment failed.",
+        "ticket_context": {"status": "open", "category": null, "history": []},
+        "expected": {
+          "response_type": "card",
+          "checks": [
+            {"type": "category_equals", "value": "UPI_FAILURE"},
+            {"type": "has_escalation", "value": false}
+          ],
+          "sample_card": {
+            "category": "UPI_FAILURE",
+            "reference": "TXN010 | NPCI_RULE_UPI_T5",
+            "response": "₹1,850 debited to Zomato on 23 Jun. Reversal expected by 1 Jul 2026 as per NPCI UPI rules.",
+            "next_step": "Reversal expected by 1 Jul 2026. No action needed."
+          }
+        }
+      },
+      {
+        "turn": 2,
+        "user": "still not credited, it's been days",
+        "ticket_context": {
+          "status": "open", "category": "UPI_FAILURE",
+          "history": [
+            {"role": "user", "content": "Zomato UPI of ₹1850 debited, payment failed."},
+            {"role": "assistant", "content": "₹1,850 debited to Zomato on 23 Jun. Reversal expected by 1 Jul 2026 as per NPCI UPI rules. Reversal expected by 1 Jul 2026. No action needed."}
+          ]
+        },
+        "expected": {
+          "response_type": "conversational",
+          "checks": [
+            {"type": "message_contains", "values": ["specialist", "3 minutes"]},
+            {"type": "ticket_status_equals", "value": "escalated"}
+          ],
+          "sample_message": "Connecting you to a specialist. Your ticket ID is {ticket_id}. Wait under 3 minutes."
+        }
+      }
+    ]
+  },
+  {
+    "id": "UPI-15",
+    "group": "UPI_FAILURE",
+    "persona": "post_escalation_grateful",
+    "description": "Multi-turn: Turn 1 escalation card (past T+5). Turn 2 user says 'thanks' — must get warm conversational reply without repeating card details.",
+    "transaction": {
+      "txn_id": "TXN001", "user_id": "USR001", "merchant": "Swiggy",
+      "amount": 2340.0, "type": "UPI", "status": "FAILED", "channel": "UPI",
+      "initiated_at": "2026-06-18T10:23:00+05:30", "settled_at": null
+    },
+    "turns": [
+      {
+        "turn": 1,
+        "user": "Swiggy payment ₹2340 debited on 18 June, not received.",
+        "ticket_context": {"status": "open", "category": null, "history": []},
+        "expected": {
+          "response_type": "card",
+          "checks": [
+            {"type": "has_escalation", "value": true}
+          ],
+          "sample_card": {
+            "category": "UPI_FAILURE",
+            "reference": "TXN001 | NPCI_RULE_UPI_T5",
+            "response": "₹2,340 debited to Swiggy on 18 Jun. The T+5 deadline has passed. A senior colleague has been notified.",
+            "next_step": "A senior colleague will reach out within 4 business hours on your registered contact."
+          }
+        }
+      },
+      {
+        "turn": 2,
+        "user": "Thanks, appreciate it.",
+        "ticket_context": {
+          "status": "escalated", "category": "UPI_FAILURE",
+          "history": [
+            {"role": "user", "content": "Swiggy payment ₹2340 debited on 18 June, not received."},
+            {"role": "assistant", "content": "₹2,340 debited to Swiggy on 18 Jun. The T+5 deadline has passed. A senior colleague has been notified. A senior colleague will reach out within 4 business hours on your registered contact."}
+          ]
+        },
+        "expected": {
+          "response_type": "conversational",
+          "checks": [
+            {"type": "message_not_contains", "values": ["TXN001", "NPCI_RULE_UPI_T5", "₹2,340", "4 business hours"]},
+            {"type": "message_not_contains", "values": ["guaranteed", "definitely"]},
+            {"type": "message_max_length", "value": 200}
+          ],
+          "sample_message": "Of course — the team will be in touch soon. Take care."
+        }
+      }
+    ]
+  },
+  {
+    "id": "UPI-16",
+    "group": "UPI_FAILURE",
+    "persona": "post_escalation_anxious",
+    "description": "Multi-turn: Escalation card. Follow-up 'it's been 6 hours, no call'. Agent must acknowledge, not make new commitment, not ask for personal info.",
+    "transaction": {
+      "txn_id": "TXN001", "user_id": "USR001", "merchant": "Swiggy",
+      "amount": 2340.0, "type": "UPI", "status": "FAILED", "channel": "UPI",
+      "initiated_at": "2026-06-18T10:23:00+05:30", "settled_at": null
+    },
+    "turns": [
+      {
+        "turn": 1,
+        "user": "Swiggy ₹2340 UPI failed on 18 June, still debited.",
+        "ticket_context": {"status": "open", "category": null, "history": []},
+        "expected": {
+          "response_type": "card",
+          "checks": [{"type": "has_escalation", "value": true}],
+          "sample_card": {
+            "category": "UPI_FAILURE",
+            "reference": "TXN001 | NPCI_RULE_UPI_T5",
+            "response": "₹2,340 debited to Swiggy on 18 Jun. The T+5 deadline has passed. A senior colleague has been notified.",
+            "next_step": "A senior colleague will reach out within 4 business hours on your registered contact."
+          }
+        }
+      },
+      {
+        "turn": 2,
+        "user": "It's been 6 hours and no one has called me yet.",
+        "ticket_context": {
+          "status": "escalated", "category": "UPI_FAILURE",
+          "history": [
+            {"role": "user", "content": "Swiggy ₹2340 UPI failed on 18 June, still debited."},
+            {"role": "assistant", "content": "₹2,340 debited to Swiggy on 18 Jun. The T+5 deadline has passed. A senior colleague has been notified. A senior colleague will reach out within 4 business hours on your registered contact."}
+          ]
+        },
+        "expected": {
+          "response_type": "conversational",
+          "checks": [
+            {"type": "message_not_contains", "values": ["mobile number", "account number", "pull up your case", "call us at"]},
+            {"type": "message_not_contains", "values": ["guaranteed", "definitely", "immediately"]},
+            {"type": "message_not_contains", "values": ["TXN001", "₹2,340", "Swiggy", "NPCI"]},
+            {"type": "message_max_length", "value": 250}
+          ],
+          "sample_message": "I can see this is taking longer than expected. Your case is with the team and they have your contact details — I've noted the delay and it's been flagged."
+        }
+      }
+    ]
+  },
+  {
+    "id": "UPI-17",
+    "group": "UPI_FAILURE",
+    "persona": "angry_post_escalation",
+    "description": "Multi-turn: Escalation card. Follow-up angry 'you promised 4 hours, it's been 8'. No new commitment, empathetic, no personal info request.",
+    "transaction": {
+      "txn_id": "TXN001", "user_id": "USR001", "merchant": "Swiggy",
+      "amount": 2340.0, "type": "UPI", "status": "FAILED", "channel": "UPI",
+      "initiated_at": "2026-06-18T10:23:00+05:30", "settled_at": null
+    },
+    "turns": [
+      {
+        "turn": 1,
+        "user": "Swiggy UPI ₹2340 debited on 18 June, not credited.",
+        "ticket_context": {"status": "open", "category": null, "history": []},
+        "expected": {
+          "response_type": "card",
+          "checks": [{"type": "has_escalation", "value": true}],
+          "sample_card": {
+            "category": "UPI_FAILURE",
+            "reference": "TXN001 | NPCI_RULE_UPI_T5",
+            "response": "₹2,340 debited to Swiggy on 18 Jun. The T+5 deadline has passed. A senior colleague has been notified.",
+            "next_step": "A senior colleague will reach out within 4 business hours on your registered contact."
+          }
+        }
+      },
+      {
+        "turn": 2,
+        "user": "You said 4 hours. It's been 8 hours. What kind of service is this? This is unacceptable!",
+        "ticket_context": {
+          "status": "escalated", "category": "UPI_FAILURE",
+          "history": [
+            {"role": "user", "content": "Swiggy UPI ₹2340 debited on 18 June, not credited."},
+            {"role": "assistant", "content": "₹2,340 debited to Swiggy on 18 Jun. The T+5 deadline has passed. A senior colleague has been notified. A senior colleague will reach out within 4 business hours on your registered contact."}
+          ]
+        },
+        "expected": {
+          "response_type": "conversational",
+          "checks": [
+            {"type": "message_not_contains", "values": ["mobile number", "account number", "call us", "guaranteed", "definitely", "immediately"]},
+            {"type": "message_not_contains", "values": ["I understand your frustration", "I apologize for the inconvenience"]},
+            {"type": "message_not_contains", "values": ["TXN001", "₹2,340", "NPCI"]},
+            {"type": "message_max_length", "value": 250}
+          ],
+          "sample_message": "That delay is not acceptable and I've flagged it. Your case is already with the team and they have everything they need — I can't make a new time commitment, but the escalation is logged."
+        }
+      }
+    ]
+  },
+  {
+    "id": "UPI-18",
+    "group": "UPI_FAILURE",
+    "persona": "no_txn_found",
+    "description": "User mentions Swiggy UPI failure but DB has two Swiggy TXNs (TXN001 and TXN002). Without explicit TXN ID, retriever picks the most recent. Agent uses retrieved data accurately.",
+    "transaction": {
+      "txn_id": "TXN002", "user_id": "USR001", "merchant": "Swiggy",
+      "amount": 2340.0, "type": "UPI", "status": "FAILED", "channel": "UPI",
+      "initiated_at": "2026-06-18T11:05:00+05:30", "settled_at": null
+    },
+    "turns": [
+      {
+        "turn": 1,
+        "user": "My Swiggy payment failed but amount was deducted.",
+        "ticket_context": {"status": "open", "category": null, "history": []},
+        "expected": {
+          "response_type": "card",
+          "checks": [
+            {"type": "category_equals", "value": "UPI_FAILURE"},
+            {"type": "reference_contains", "values": ["TXN002"]},
+            {"type": "response_contains", "values": ["Swiggy", "senior colleague"]},
+            {"type": "has_escalation", "value": true},
+            {"type": "no_filler_opener", "value": true}
+          ],
+          "sample_card": {
+            "category": "UPI_FAILURE",
+            "reference": "TXN002 | NPCI_RULE_UPI_T5",
+            "response": "₹2,340 debited to Swiggy on 18 Jun. The T+5 deadline has passed. A senior colleague has been notified.",
+            "next_step": "A senior colleague will reach out within 4 business hours on your registered contact."
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "UPI-19",
+    "group": "UPI_FAILURE",
+    "persona": "calm_status_checker",
+    "description": "User includes TXN010 explicitly in their message. Retriever must use direct lookup, not category-based search.",
+    "transaction": {
+      "txn_id": "TXN010", "user_id": "USR001", "merchant": "Zomato",
+      "amount": 1850.0, "type": "UPI", "status": "FAILED", "channel": "UPI",
+      "initiated_at": "2026-06-23T09:30:00+05:30", "settled_at": null
+    },
+    "turns": [
+      {
+        "turn": 1,
+        "user": "My transaction TXN010 — the Zomato payment — is showing failed but money was deducted. What's the status?",
+        "ticket_context": {"status": "open", "category": null, "history": []},
+        "expected": {
+          "response_type": "card",
+          "checks": [
+            {"type": "category_equals", "value": "UPI_FAILURE"},
+            {"type": "reference_contains", "values": ["TXN010", "NPCI_RULE_UPI_T5"]},
+            {"type": "response_contains", "values": ["₹1,850", "Zomato", "1 Jul"]},
+            {"type": "has_escalation", "value": false}
+          ],
+          "sample_card": {
+            "category": "UPI_FAILURE",
+            "reference": "TXN010 | NPCI_RULE_UPI_T5",
+            "response": "₹1,850 debited to Zomato on 23 Jun. Reversal expected by 1 Jul 2026 as per NPCI UPI rules.",
+            "next_step": "Reversal expected by 1 Jul 2026. No action needed."
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "UPI-20",
+    "group": "UPI_FAILURE",
+    "persona": "threatening_customer",
+    "description": "User threatens to escalate to RBI/consumer forum. Agent stays factual, does not threaten back, does not make new commitments. Already past T+5 so escalation card applies.",
+    "transaction": {
+      "txn_id": "TXN001", "user_id": "USR001", "merchant": "Swiggy",
+      "amount": 2340.0, "type": "UPI", "status": "FAILED", "channel": "UPI",
+      "initiated_at": "2026-06-18T10:23:00+05:30", "settled_at": null
+    },
+    "turns": [
+      {
+        "turn": 1,
+        "user": "My Swiggy UPI of ₹2340 from 18 June is still stuck. If this isn't resolved I'm going to complain to RBI and consumer court.",
+        "ticket_context": {"status": "open", "category": null, "history": []},
+        "expected": {
+          "response_type": "card",
+          "checks": [
+            {"type": "category_equals", "value": "UPI_FAILURE"},
+            {"type": "reference_contains", "values": ["TXN001", "NPCI_RULE_UPI_T5"]},
+            {"type": "response_contains", "values": ["₹2,340", "Swiggy", "senior colleague"]},
+            {"type": "response_not_contains", "values": ["guaranteed", "definitely", "your money is safe", "RBI", "court", "I understand your frustration"]},
+            {"type": "has_escalation", "value": true},
+            {"type": "no_filler_opener", "value": true}
+          ],
+          "sample_card": {
+            "category": "UPI_FAILURE",
+            "reference": "TXN001 | NPCI_RULE_UPI_T5",
+            "response": "₹2,340 debited to Swiggy on 18 Jun. The T+5 deadline has passed. A senior colleague has been notified and your case details have been shared.",
+            "next_step": "A senior colleague will reach out within 4 business hours on your registered contact. No action needed from you."
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "POT-01",
+    "group": "POT_WITHDRAWAL",
+    "persona": "calm_status_checker",
+    "description": "Pot withdrawal within 2h window. Calm query. Expect specific next NEFT batch time, no escalation.",
+    "transaction": {
+      "txn_id": "TXN012", "user_id": "USR001", "merchant": "Savings Pot Withdrawal",
+      "amount": 5500.0, "type": "POT_WITHDRAWAL", "status": "PENDING", "channel": "NEFT",
+      "initiated_at": "2026-06-26T09:45:00+05:30", "settled_at": null
+    },
+    "turns": [
+      {
+        "turn": 1,
+        "user": "I withdrew ₹5,500 from my Savings Pot this morning but it hasn't appeared in my account yet.",
+        "ticket_context": {"status": "open", "category": null, "history": []},
+        "expected": {
+          "response_type": "card",
+          "checks": [
+            {"type": "category_equals", "value": "POT_WITHDRAWAL"},
+            {"type": "reference_contains", "values": ["TXN012", "NEFT_RULE_BATCH_WINDOW"]},
+            {"type": "response_contains", "values": ["₹5,500", "10:00"]},
+            {"type": "response_not_contains", "values": ["guaranteed", "definitely", "NEFT is fast"]},
+            {"type": "has_escalation", "value": false},
+            {"type": "no_filler_opener", "value": true}
+          ],
+          "sample_card": {
+            "category": "POT_WITHDRAWAL",
+            "reference": "TXN012 | NEFT_RULE_BATCH_WINDOW",
+            "response": "₹5,500 withdrawal initiated at 09:45 IST. Settlement is expected in the 10:00–10:30 IST NEFT batch as per NEFT batch schedule.",
+            "next_step": "Settlement expected in the 10:00–10:30 IST batch today. No action needed."
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "POT-02",
+    "group": "POT_WITHDRAWAL",
+    "persona": "calm_status_checker",
+    "description": "Pot withdrawal past 2h escalation threshold. Calm query. Expect escalation with 2-hour SLA.",
+    "transaction": {
+      "txn_id": "TXN009", "user_id": "USR001", "merchant": "Savings Pot Withdrawal",
+      "amount": 11000.0, "type": "POT_WITHDRAWAL", "status": "PENDING", "channel": "NEFT",
+      "initiated_at": "2026-06-24T14:47:00+05:30", "settled_at": null
+    },
+    "turns": [
+      {
+        "turn": 1,
+        "user": "My Savings Pot withdrawal of ₹11,000 from 24 June is still pending. The money hasn't arrived.",
+        "ticket_context": {"status": "open", "category": null, "history": []},
+        "expected": {
+          "response_type": "card",
+          "checks": [
+            {"type": "category_equals", "value": "POT_WITHDRAWAL"},
+            {"type": "reference_contains", "values": ["TXN009", "NEFT_RULE_ESCALATION_THRESHOLD"]},
+            {"type": "response_contains", "values": ["₹11,000", "senior colleague"]},
+            {"type": "response_not_contains", "values": ["guaranteed", "mobile number", "account number", "pull up your case"]},
+            {"type": "next_step_not_contains", "values": ["call us", "tap here", "send another message"]},
+            {"type": "response_not_contains", "values": ["guaranteed", "mobile number", "account number", "pull up your case"]},
+            {"type": "has_escalation", "value": true},
+            {"type": "no_filler_opener", "value": true}
+          ],
+          "sample_card": {
+            "category": "POT_WITHDRAWAL",
+            "reference": "TXN009 | NEFT_RULE_ESCALATION_THRESHOLD",
+            "response": "₹11,000 withdrawal initiated on 24 Jun 14:47 IST has not settled. The 2-hour escalation threshold has passed. A senior colleague has been notified and your case details have been shared.",
+            "next_step": "A senior colleague will reach out within 2 hours on your registered contact. No action needed from you."
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "POT-03",
+    "group": "POT_WITHDRAWAL",
+    "persona": "high_value_customer",
+    "description": "High-value Pot withdrawal (>₹50,000). ESCALATION_RULE_AMOUNT must fire regardless of 2h window.",
+    "transaction": {
+      "txn_id": "TXN014", "user_id": "USR001", "merchant": "Savings Pot Withdrawal",
+      "amount": 75000.0, "type": "POT_WITHDRAWAL", "status": "PENDING", "channel": "NEFT",
+      "initiated_at": "2026-06-26T08:00:00+05:30", "settled_at": null
+    },
+    "turns": [
+      {
+        "turn": 1,
+        "user": "I withdrew ₹75,000 from my Savings Pot this morning and it's still not in my account.",
+        "ticket_context": {"status": "open", "category": null, "history": []},
+        "expected": {
+          "response_type": "card",
+          "checks": [
+            {"type": "category_equals", "value": "POT_WITHDRAWAL"},
+            {"type": "reference_contains", "values": ["TXN014", "ESCALATION_RULE_AMOUNT"]},
+            {"type": "response_contains", "values": ["₹75,000", "senior colleague"]},
+            {"type": "response_not_contains", "values": ["guaranteed", "mobile number", "account number"]},
+            {"type": "has_escalation", "value": true},
+            {"type": "no_filler_opener", "value": true}
+          ],
+          "sample_card": {
+            "category": "POT_WITHDRAWAL",
+            "reference": "TXN014 | ESCALATION_RULE_AMOUNT",
+            "response": "₹75,000 withdrawal initiated on 26 Jun triggers mandatory escalation as per escalation policy. A senior colleague has been notified and your case details have been shared.",
+            "next_step": "A senior colleague will reach out within 2 hours on your registered contact. No action needed from you."
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "POT-04",
+    "group": "POT_WITHDRAWAL",
+    "persona": "calm_status_checker",
+    "description": "Pot withdrawal initiated at 22:30 IST — after 23:00 cutoff means next morning's 00:30 batch. Correct batch calculation required.",
+    "transaction": {
+      "txn_id": "TXN015", "user_id": "USR001", "merchant": "Savings Pot Withdrawal",
+      "amount": 3000.0, "type": "POT_WITHDRAWAL", "status": "PENDING", "channel": "NEFT",
+      "initiated_at": "2026-06-25T22:30:00+05:30", "settled_at": null
+    },
+    "turns": [
+      {
+        "turn": 1,
+        "user": "I withdrew ₹3,000 from my Savings Pot at 10:30 PM yesterday. Still not received.",
+        "ticket_context": {"status": "open", "category": null, "history": []},
+        "expected": {
+          "response_type": "card",
+          "checks": [
+            {"type": "category_equals", "value": "POT_WITHDRAWAL"},
+            {"type": "reference_contains", "values": ["TXN015", "NEFT_RULE_BATCH_WINDOW"]},
+            {"type": "response_contains", "values": ["₹3,000", "00:30"]},
+            {"type": "response_not_contains", "values": ["guaranteed", "NEFT is fast", "immediately"]},
+            {"type": "has_escalation", "value": true},
+            {"type": "no_filler_opener", "value": true}
+          ],
+          "sample_card": {
+            "category": "POT_WITHDRAWAL",
+            "reference": "TXN015 | NEFT_RULE_BATCH_WINDOW",
+            "response": "₹3,000 withdrawal initiated at 22:30 IST on 25 Jun. Initiated after 23:00 cutoff, so settlement was scheduled for the 00:30 IST batch on 26 Jun. That window has now passed and the 2h threshold has been crossed — a senior colleague has been notified.",
+            "next_step": "A senior colleague will reach out within 2 hours on your registered contact. No action needed."
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "POT-05",
+    "group": "POT_WITHDRAWAL",
+    "persona": "angry_harsh",
+    "description": "Angry user with harsh language on Pot withdrawal (past 2h). Agent delivers escalation card, stays professional.",
+    "transaction": {
+      "txn_id": "TXN009", "user_id": "USR001", "merchant": "Savings Pot Withdrawal",
+      "amount": 11000.0, "type": "POT_WITHDRAWAL", "status": "PENDING", "channel": "NEFT",
+      "initiated_at": "2026-06-24T14:47:00+05:30", "settled_at": null
+    },
+    "turns": [
+      {
+        "turn": 1,
+        "user": "WHERE IS MY MONEY??? I withdrew ₹11000 from pot on 24th June and NOTHING. Absolute rubbish service!",
+        "ticket_context": {"status": "open", "category": null, "history": []},
+        "expected": {
+          "response_type": "card",
+          "checks": [
+            {"type": "category_equals", "value": "POT_WITHDRAWAL"},
+            {"type": "reference_contains", "values": ["TXN009"]},
+            {"type": "response_contains", "values": ["₹11,000", "senior colleague"]},
+            {"type": "response_not_contains", "values": ["I understand your frustration", "I apologize", "Happy to help", "guaranteed", "your money is safe"]},
+            {"type": "has_escalation", "value": true},
+            {"type": "no_filler_opener", "value": true}
+          ],
+          "sample_card": {
+            "category": "POT_WITHDRAWAL",
+            "reference": "TXN009 | NEFT_RULE_ESCALATION_THRESHOLD",
+            "response": "₹11,000 withdrawal from 24 Jun has not settled — the escalation threshold has passed. A senior colleague has been notified and your case details have been shared.",
+            "next_step": "A senior colleague will reach out within 2 hours on your registered contact. No action needed from you."
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "POT-06",
+    "group": "POT_WITHDRAWAL",
+    "persona": "distressed_customer",
+    "description": "Pot withdrawal with distress keyword 'urgent'. Escalation with urgency framing. Must not ask for personal info.",
+    "transaction": {
+      "txn_id": "TXN009", "user_id": "USR001", "merchant": "Savings Pot Withdrawal",
+      "amount": 11000.0, "type": "POT_WITHDRAWAL", "status": "PENDING", "channel": "NEFT",
+      "initiated_at": "2026-06-24T14:47:00+05:30", "settled_at": null
+    },
+    "turns": [
+      {
+        "turn": 1,
+        "user": "My Pot withdrawal of ₹11000 from 24 June hasn't come through. I need this urgently for an emergency.",
+        "ticket_context": {"status": "open", "category": null, "history": []},
+        "expected": {
+          "response_type": "card",
+          "checks": [
+            {"type": "category_equals", "value": "POT_WITHDRAWAL"},
+            {"type": "reference_contains", "values": ["TXN009", "ESCALATION_RULE_DISTRESS"]},
+            {"type": "response_contains", "values": ["₹11,000", "senior colleague", "prioritis"]},
+            {"type": "response_not_contains", "values": ["guaranteed", "mobile number", "account number", "pull up your case", "immediately"]},
+            {"type": "has_escalation", "value": true},
+            {"type": "no_filler_opener", "value": true}
+          ],
+          "sample_card": {
+            "category": "POT_WITHDRAWAL",
+            "reference": "TXN009 | ESCALATION_RULE_DISTRESS",
+            "response": "₹11,000 withdrawal from 24 Jun is being prioritised given the urgency. A senior colleague has been notified and your case details have been shared.",
+            "next_step": "A senior colleague will reach out within 2 hours on your registered contact. No action needed."
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "POT-07",
+    "group": "POT_WITHDRAWAL",
+    "persona": "terse_user",
+    "description": "Terse user 'where is my pot money'. Single short message. Agent gives full resolution without needing extra clarification.",
+    "transaction": {
+      "txn_id": "TXN009", "user_id": "USR001", "merchant": "Savings Pot Withdrawal",
+      "amount": 11000.0, "type": "POT_WITHDRAWAL", "status": "PENDING", "channel": "NEFT",
+      "initiated_at": "2026-06-24T14:47:00+05:30", "settled_at": null
+    },
+    "turns": [
+      {
+        "turn": 1,
+        "user": "where is my pot withdrawal money",
+        "ticket_context": {"status": "open", "category": null, "history": []},
+        "expected": {
+          "response_type": "card",
+          "checks": [
+            {"type": "category_equals", "value": "POT_WITHDRAWAL"},
+            {"type": "reference_contains", "values": ["TXN009"]},
+            {"type": "response_contains", "values": ["₹11,000", "senior colleague"]},
+            {"type": "has_escalation", "value": true},
+            {"type": "no_filler_opener", "value": true}
+          ],
+          "sample_card": {
+            "category": "POT_WITHDRAWAL",
+            "reference": "TXN009 | NEFT_RULE_ESCALATION_THRESHOLD",
+            "response": "₹11,000 withdrawal from 24 Jun has not settled — the escalation threshold has passed. A senior colleague has been notified.",
+            "next_step": "A senior colleague will reach out within 2 hours on your registered contact."
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "POT-08",
+    "group": "POT_WITHDRAWAL",
+    "persona": "persistent_complainant",
+    "description": "Multi-turn: Turn 1 within 2h window response. Turn 2 'batch passed, still nothing in my account' — triggers escalation on follow-up.",
+    "transaction": {
+      "txn_id": "TXN012", "user_id": "USR001", "merchant": "Savings Pot Withdrawal",
+      "amount": 5500.0, "type": "POT_WITHDRAWAL", "status": "PENDING", "channel": "NEFT",
+      "initiated_at": "2026-06-26T09:45:00+05:30", "settled_at": null
+    },
+    "turns": [
+      {
+        "turn": 1,
+        "user": "Withdrew ₹5,500 from Savings Pot at 9:45 AM, not in account yet.",
+        "ticket_context": {"status": "open", "category": null, "history": []},
+        "expected": {
+          "response_type": "card",
+          "checks": [
+            {"type": "category_equals", "value": "POT_WITHDRAWAL"},
+            {"type": "has_escalation", "value": false},
+            {"type": "response_contains", "values": ["₹5,500", "10:00"]}
+          ],
+          "sample_card": {
+            "category": "POT_WITHDRAWAL",
+            "reference": "TXN012 | NEFT_RULE_BATCH_WINDOW",
+            "response": "₹5,500 withdrawal initiated at 09:45 IST. Settlement expected in the 10:00–10:30 IST NEFT batch.",
+            "next_step": "Settlement expected in the 10:00–10:30 IST batch. No action needed."
+          }
+        }
+      },
+      {
+        "turn": 2,
+        "user": "It's past 10:30 now and still not received. The batch has passed.",
+        "ticket_context": {
+          "status": "open", "category": "POT_WITHDRAWAL",
+          "history": [
+            {"role": "user", "content": "Withdrew ₹5,500 from Savings Pot at 9:45 AM, not in account yet."},
+            {"role": "assistant", "content": "₹5,500 withdrawal initiated at 09:45 IST. Settlement expected in the 10:00–10:30 IST NEFT batch. Settlement expected in the 10:00–10:30 IST batch. No action needed."}
+          ]
+        },
+        "expected": {
+          "response_type": "card",
+          "checks": [
+            {"type": "category_equals", "value": "POT_WITHDRAWAL"},
+            {"type": "response_contains", "values": ["senior colleague"]},
+            {"type": "has_escalation", "value": true}
+          ],
+          "sample_card": {
+            "category": "POT_WITHDRAWAL",
+            "reference": "TXN012 | NEFT_RULE_ESCALATION_THRESHOLD",
+            "response": "The 10:00–10:30 batch has passed without settlement. A senior colleague has been notified and your case details have been shared.",
+            "next_step": "A senior colleague will reach out within 2 hours on your registered contact. No action needed."
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "POT-09",
+    "group": "POT_WITHDRAWAL",
+    "persona": "post_escalation_grateful",
+    "description": "Multi-turn: Escalation card. Turn 2 user says 'thank you'. Warm conversational reply, no repetition of card details.",
+    "transaction": {
+      "txn_id": "TXN009", "user_id": "USR001", "merchant": "Savings Pot Withdrawal",
+      "amount": 11000.0, "type": "POT_WITHDRAWAL", "status": "PENDING", "channel": "NEFT",
+      "initiated_at": "2026-06-24T14:47:00+05:30", "settled_at": null
+    },
+    "turns": [
+      {
+        "turn": 1,
+        "user": "Savings Pot withdrawal ₹11000 from 24 June still pending.",
+        "ticket_context": {"status": "open", "category": null, "history": []},
+        "expected": {
+          "response_type": "card",
+          "checks": [{"type": "has_escalation", "value": true}],
+          "sample_card": {
+            "category": "POT_WITHDRAWAL",
+            "reference": "TXN009 | NEFT_RULE_ESCALATION_THRESHOLD",
+            "response": "₹11,000 withdrawal from 24 Jun has not settled. A senior colleague has been notified.",
+            "next_step": "A senior colleague will reach out within 2 hours on your registered contact."
+          }
+        }
+      },
+      {
+        "turn": 2,
+        "user": "Thanks for the quick help!",
+        "ticket_context": {
+          "status": "escalated", "category": "POT_WITHDRAWAL",
+          "history": [
+            {"role": "user", "content": "Savings Pot withdrawal ₹11000 from 24 June still pending."},
+            {"role": "assistant", "content": "₹11,000 withdrawal from 24 Jun has not settled. A senior colleague has been notified. A senior colleague will reach out within 2 hours on your registered contact."}
+          ]
+        },
+        "expected": {
+          "response_type": "conversational",
+          "checks": [
+            {"type": "message_not_contains", "values": ["TXN009", "NEFT_RULE", "₹11,000", "2 hours"]},
+            {"type": "message_max_length", "value": 200}
+          ],
+          "sample_message": "Of course — the team will be in touch shortly. Hope it gets sorted quickly."
+        }
+      }
+    ]
+  },
+  {
+    "id": "POT-10",
+    "group": "POT_WITHDRAWAL",
+    "persona": "auto_confirm",
+    "description": "Multi-turn: Within 2h resolution. Turn 2 'received it, thanks' — auto-confirm closes ticket.",
+    "transaction": {
+      "txn_id": "TXN012", "user_id": "USR001", "merchant": "Savings Pot Withdrawal",
+      "amount": 5500.0, "type": "POT_WITHDRAWAL", "status": "PENDING", "channel": "NEFT",
+      "initiated_at": "2026-06-26T09:45:00+05:30", "settled_at": null
+    },
+    "turns": [
+      {
+        "turn": 1,
+        "user": "Pot withdrawal ₹5500 at 9:45 not in account.",
+        "ticket_context": {"status": "open", "category": null, "history": []},
+        "expected": {
+          "response_type": "card",
+          "checks": [{"type": "has_escalation", "value": false}],
+          "sample_card": {
+            "category": "POT_WITHDRAWAL",
+            "reference": "TXN012 | NEFT_RULE_BATCH_WINDOW",
+            "response": "₹5,500 withdrawal at 09:45 IST. Settlement expected in the 10:00–10:30 IST batch.",
+            "next_step": "Settlement expected in the 10:00–10:30 IST batch. No action needed."
+          }
+        }
+      },
+      {
+        "turn": 2,
+        "user": "received it, thanks",
+        "ticket_context": {
+          "status": "open", "category": "POT_WITHDRAWAL",
+          "history": [
+            {"role": "user", "content": "Pot withdrawal ₹5500 at 9:45 not in account."},
+            {"role": "assistant", "content": "₹5,500 withdrawal at 09:45 IST. Settlement expected in the 10:00–10:30 IST batch. Settlement expected in the 10:00–10:30 IST batch. No action needed."}
+          ]
+        },
+        "expected": {
+          "response_type": "conversational",
+          "checks": [
+            {"type": "ticket_status_equals", "value": "resolved"},
+            {"type": "message_contains", "values": ["closed"]}
+          ],
+          "sample_message": "Glad it's sorted. Your ticket is now closed."
+        }
+      }
+    ]
+  },
+  {
+    "id": "POT-11",
+    "group": "POT_WITHDRAWAL",
+    "persona": "persistent_complainant",
+    "description": "Multi-turn: Within 2h resolution. Turn 2 'still not received' — exhaustion path, escalation message with ticket ID.",
+    "transaction": {
+      "txn_id": "TXN012", "user_id": "USR001", "merchant": "Savings Pot Withdrawal",
+      "amount": 5500.0, "type": "POT_WITHDRAWAL", "status": "PENDING", "channel": "NEFT",
+      "initiated_at": "2026-06-26T09:45:00+05:30", "settled_at": null
+    },
+    "turns": [
+      {
+        "turn": 1,
+        "user": "Pot withdrawal ₹5500 pending since this morning.",
+        "ticket_context": {"status": "open", "category": null, "history": []},
+        "expected": {
+          "response_type": "card",
+          "checks": [{"type": "has_escalation", "value": false}],
+          "sample_card": {
+            "category": "POT_WITHDRAWAL",
+            "reference": "TXN012 | NEFT_RULE_BATCH_WINDOW",
+            "response": "₹5,500 withdrawal at 09:45 IST. Settlement expected in the 10:00–10:30 IST batch.",
+            "next_step": "Settlement expected in the 10:00–10:30 IST batch. No action needed."
+          }
+        }
+      },
+      {
+        "turn": 2,
+        "user": "still not received, the batch you mentioned has passed",
+        "ticket_context": {
+          "status": "open", "category": "POT_WITHDRAWAL",
+          "history": [
+            {"role": "user", "content": "Pot withdrawal ₹5500 pending since this morning."},
+            {"role": "assistant", "content": "₹5,500 withdrawal at 09:45 IST. Settlement expected in the 10:00–10:30 IST batch. Settlement expected in the 10:00–10:30 IST batch. No action needed."}
+          ]
+        },
+        "expected": {
+          "response_type": "card",
+          "checks": [
+            {"type": "response_contains", "values": ["senior colleague"]},
+            {"type": "has_escalation", "value": true}
+          ],
+          "sample_card": {
+            "category": "POT_WITHDRAWAL",
+            "reference": "TXN012 | NEFT_RULE_ESCALATION_THRESHOLD",
+            "response": "The 10:00–10:30 batch passed without settlement. A senior colleague has been notified and your case details have been shared.",
+            "next_step": "A senior colleague will reach out within 2 hours on your registered contact. No action needed."
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "POT-12",
+    "group": "POT_WITHDRAWAL",
+    "persona": "anxious_all_caps",
+    "description": "Anxious user with lots of exclamation marks. Agent gives calm, specific resolution without matching the anxiety.",
+    "transaction": {
+      "txn_id": "TXN012", "user_id": "USR001", "merchant": "Savings Pot Withdrawal",
+      "amount": 5500.0, "type": "POT_WITHDRAWAL", "status": "PENDING", "channel": "NEFT",
+      "initiated_at": "2026-06-26T09:45:00+05:30", "settled_at": null
+    },
+    "turns": [
+      {
+        "turn": 1,
+        "user": "HELP!! My savings pot withdrawal of ₹5500 isn't there!!! WHY IS THIS TAKING SO LONG!!!",
+        "ticket_context": {"status": "open", "category": null, "history": []},
+        "expected": {
+          "response_type": "card",
+          "checks": [
+            {"type": "category_equals", "value": "POT_WITHDRAWAL"},
+            {"type": "response_contains", "values": ["₹5,500", "10:00"]},
+            {"type": "response_not_contains", "values": ["I understand your frustration", "Certainly", "Happy to help", "guaranteed", "NEFT is fast"]},
+            {"type": "has_escalation", "value": false},
+            {"type": "no_filler_opener", "value": true}
+          ],
+          "sample_card": {
+            "category": "POT_WITHDRAWAL",
+            "reference": "TXN012 | NEFT_RULE_BATCH_WINDOW",
+            "response": "₹5,500 withdrawal initiated at 09:45 IST. Settlement is expected in the 10:00–10:30 IST NEFT batch.",
+            "next_step": "Settlement expected in the 10:00–10:30 IST batch. No action needed."
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "UNC-01",
+    "group": "UNCLEAR",
+    "persona": "confused_user",
+    "description": "Ambiguous 'money stuck'. Turn 1: agent asks ONE clarifying question. Turn 2: user says 'UPI payment to restaurant'. Turn 3: UPI resolution card.",
+    "transaction": {
+      "txn_id": "TXN010", "user_id": "USR001", "merchant": "Zomato",
+      "amount": 1850.0, "type": "UPI", "status": "FAILED", "channel": "UPI",
+      "initiated_at": "2026-06-23T09:30:00+05:30", "settled_at": null
+    },
+    "turns": [
+      {
+        "turn": 1,
+        "user": "My money is stuck since yesterday. What do I do?",
+        "ticket_context": {"status": "open", "category": null, "history": []},
+        "expected": {
+          "response_type": "conversational",
+          "checks": [
+            {"type": "message_contains_any", "values": ["UPI", "Pot", "withdrawal", "payment"]},
+            {"type": "message_not_contains", "values": ["guaranteed", "Great question", "Happy to help"]},
+            {"type": "single_question_only", "value": true},
+            {"type": "message_max_length", "value": 250}
+          ],
+          "sample_message": "To look into this, could you tell me — was this a UPI payment that didn't go through, or a Savings Pot withdrawal that hasn't arrived?"
+        }
+      },
+      {
+        "turn": 2,
+        "user": "It was a UPI payment I sent to a restaurant.",
+        "ticket_context": {
+          "status": "open", "category": null,
+          "history": [
+            {"role": "user", "content": "My money is stuck since yesterday. What do I do?"},
+            {"role": "assistant", "content": "To look into this, could you tell me — was this a UPI payment that didn't go through, or a Savings Pot withdrawal that hasn't arrived?"}
+          ]
+        },
+        "expected": {
+          "response_type": "card",
+          "checks": [
+            {"type": "category_equals", "value": "UPI_FAILURE"},
+            {"type": "reference_contains", "values": ["TXN010", "NPCI_RULE_UPI_T5"]},
+            {"type": "response_contains", "values": ["₹1,850", "Zomato"]},
+            {"type": "has_escalation", "value": false},
+            {"type": "no_filler_opener", "value": true}
+          ],
+          "sample_card": {
+            "category": "UPI_FAILURE",
+            "reference": "TXN010 | NPCI_RULE_UPI_T5",
+            "response": "₹1,850 debited to Zomato on 23 Jun. Reversal expected by 1 Jul 2026 as per NPCI UPI rules.",
+            "next_step": "Reversal expected by 1 Jul 2026. No action needed from you."
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "UNC-02",
+    "group": "UNCLEAR",
+    "persona": "confused_user",
+    "description": "Ambiguous 'not received'. Turn 1: one clarifying question. Turn 2: user says 'savings pot withdrawal'. Turn 3: POT resolution card.",
+    "transaction": {
+      "txn_id": "TXN009", "user_id": "USR001", "merchant": "Savings Pot Withdrawal",
+      "amount": 11000.0, "type": "POT_WITHDRAWAL", "status": "PENDING", "channel": "NEFT",
+      "initiated_at": "2026-06-24T14:47:00+05:30", "settled_at": null
+    },
+    "turns": [
+      {
+        "turn": 1,
+        "user": "I haven't received my money. It's been more than a day.",
+        "ticket_context": {"status": "open", "category": null, "history": []},
+        "expected": {
+          "response_type": "conversational",
+          "checks": [
+            {"type": "message_contains_any", "values": ["UPI", "Pot", "withdrawal", "payment"]},
+            {"type": "single_question_only", "value": true},
+            {"type": "message_max_length", "value": 250}
+          ],
+          "sample_message": "Could you clarify — is this a UPI payment where the amount was debited but not credited to the recipient, or a Savings Pot withdrawal that hasn't arrived in your account?"
+        }
+      },
+      {
+        "turn": 2,
+        "user": "It's a savings pot withdrawal. I withdrew from my pot.",
+        "ticket_context": {
+          "status": "open", "category": null,
+          "history": [
+            {"role": "user", "content": "I haven't received my money. It's been more than a day."},
+            {"role": "assistant", "content": "Could you clarify — is this a UPI payment where the amount was debited but not credited to the recipient, or a Savings Pot withdrawal that hasn't arrived in your account?"}
+          ]
+        },
+        "expected": {
+          "response_type": "card",
+          "checks": [
+            {"type": "category_equals", "value": "POT_WITHDRAWAL"},
+            {"type": "reference_contains", "values": ["TXN009"]},
+            {"type": "response_contains", "values": ["₹11,000", "senior colleague"]},
+            {"type": "has_escalation", "value": true},
+            {"type": "no_filler_opener", "value": true}
+          ],
+          "sample_card": {
+            "category": "POT_WITHDRAWAL",
+            "reference": "TXN009 | NEFT_RULE_ESCALATION_THRESHOLD",
+            "response": "₹11,000 withdrawal from 24 Jun has not settled — escalation threshold passed. A senior colleague has been notified.",
+            "next_step": "A senior colleague will reach out within 2 hours on your registered contact."
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "UNC-03",
+    "group": "UNCLEAR",
+    "persona": "confused_user",
+    "description": "Repeated vague responses. Turn 1: clarify. Turn 2: still vague. Turn 3: escalate after max unclear turns. No personal info request.",
+    "transaction": null,
+    "turns": [
+      {
+        "turn": 1,
+        "user": "Something is wrong with my money.",
+        "ticket_context": {"status": "open", "category": null, "history": []},
+        "expected": {
+          "response_type": "conversational",
+          "checks": [
+            {"type": "single_question_only", "value": true},
+            {"type": "message_max_length", "value": 250}
+          ],
+          "sample_message": "Could you tell me — was this a UPI payment that failed, or a Savings Pot withdrawal that hasn't arrived?"
+        }
+      },
+      {
+        "turn": 2,
+        "user": "I don't know, it's just not right.",
+        "ticket_context": {
+          "status": "open", "category": null, "unclear_count": 1,
+          "history": [
+            {"role": "user", "content": "Something is wrong with my money."},
+            {"role": "assistant", "content": "Could you tell me — was this a UPI payment that failed, or a Savings Pot withdrawal that hasn't arrived?"}
+          ]
+        },
+        "expected": {
+          "response_type": "conversational",
+          "checks": [
+            {"type": "ticket_status_equals", "value": "escalated"},
+            {"type": "message_contains", "values": ["senior colleague"]},
+            {"type": "message_not_contains", "values": ["mobile number", "account number", "please provide"]}
+          ],
+          "sample_message": "No problem — I've connected you to a senior colleague who can dig into this directly and will reach out to you shortly."
+        }
+      }
+    ]
+  },
+  {
+    "id": "UNC-04",
+    "group": "UNCLEAR",
+    "persona": "terse_user",
+    "description": "Terse single word 'stuck'. One clarifying question, then UPI resolution after clarification.",
+    "transaction": {
+      "txn_id": "TXN010", "user_id": "USR001", "merchant": "Zomato",
+      "amount": 1850.0, "type": "UPI", "status": "FAILED", "channel": "UPI",
+      "initiated_at": "2026-06-23T09:30:00+05:30", "settled_at": null
+    },
+    "turns": [
+      {
+        "turn": 1,
+        "user": "stuck",
+        "ticket_context": {"status": "open", "category": null, "history": []},
+        "expected": {
+          "response_type": "conversational",
+          "checks": [
+            {"type": "single_question_only", "value": true},
+            {"type": "message_max_length", "value": 250}
+          ],
+          "sample_message": "Just to help you — was this a UPI payment, or a Savings Pot withdrawal?"
+        }
+      },
+      {
+        "turn": 2,
+        "user": "UPI transfer, money cut but not reached",
+        "ticket_context": {
+          "status": "open", "category": null,
+          "history": [
+            {"role": "user", "content": "stuck"},
+            {"role": "assistant", "content": "Just to help you — was this a UPI payment, or a Savings Pot withdrawal?"}
+          ]
+        },
+        "expected": {
+          "response_type": "card",
+          "checks": [
+            {"type": "category_equals", "value": "UPI_FAILURE"},
+            {"type": "response_contains", "values": ["₹1,850", "Zomato"]},
+            {"type": "has_escalation", "value": false}
+          ],
+          "sample_card": {
+            "category": "UPI_FAILURE",
+            "reference": "TXN010 | NPCI_RULE_UPI_T5",
+            "response": "₹1,850 debited to Zomato on 23 Jun. Reversal expected by 1 Jul 2026 as per NPCI UPI rules.",
+            "next_step": "Reversal expected by 1 Jul 2026. No action needed."
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "UNC-05",
+    "group": "UNCLEAR",
+    "persona": "angry_unclear",
+    "description": "Angry user 'something's wrong with my money'. Still needs single clarifying question — anger doesn't exempt the agent from needing to understand the issue type.",
+    "transaction": null,
+    "turns": [
+      {
+        "turn": 1,
+        "user": "Something is seriously wrong with my money and your app is terrible!!",
+        "ticket_context": {"status": "open", "category": null, "history": []},
+        "expected": {
+          "response_type": "conversational",
+          "checks": [
+            {"type": "single_question_only", "value": true},
+            {"type": "message_not_contains", "values": ["I understand your frustration", "I apologize", "Certainly"]},
+            {"type": "message_max_length", "value": 250}
+          ],
+          "sample_message": "I want to get this sorted for you — was this a UPI payment that didn't go through, or a Savings Pot withdrawal that hasn't arrived?"
+        }
+      }
+    ]
+  },
+  {
+    "id": "UNC-06",
+    "group": "UNCLEAR",
+    "persona": "vague_user",
+    "description": "Vague 'please help me' with no context. Single question to identify the type of issue.",
+    "transaction": null,
+    "turns": [
+      {
+        "turn": 1,
+        "user": "please help me",
+        "ticket_context": {"status": "open", "category": null, "history": []},
+        "expected": {
+          "response_type": "conversational",
+          "checks": [
+            {"type": "single_question_only", "value": true},
+            {"type": "message_not_contains", "values": ["Great question", "Happy to help", "Certainly"]},
+            {"type": "message_max_length", "value": 250}
+          ],
+          "sample_message": "Of course — could you describe what happened, was it a UPI payment that failed or something with your Savings Pot?"
+        }
+      }
+    ]
+  },
+  {
+    "id": "UNC-07",
+    "group": "UNCLEAR",
+    "persona": "incomplete_info",
+    "description": "User provides amount but no category clue. Single clarifying question — do not assume UPI or POT from amount alone.",
+    "transaction": null,
+    "turns": [
+      {
+        "turn": 1,
+        "user": "₹8000 is missing from my app",
+        "ticket_context": {"status": "open", "category": null, "history": []},
+        "expected": {
+          "response_type": "conversational",
+          "checks": [
+            {"type": "single_question_only", "value": true},
+            {"type": "message_not_contains", "values": ["guaranteed"]},
+            {"type": "message_max_length", "value": 250}
+          ],
+          "sample_message": "I can help with that — was this a UPI payment that failed after debit, or a Savings Pot withdrawal that hasn't arrived in your bank account?"
+        }
+      }
+    ]
+  },
+  {
+    "id": "UNC-08",
+    "group": "UNCLEAR",
+    "persona": "confused_user",
+    "description": "Borderline case: 'payment failed' — could be UPI or card. Agent asks one question, user confirms UPI, then gets resolution.",
+    "transaction": {
+      "txn_id": "TXN010", "user_id": "USR001", "merchant": "Zomato",
+      "amount": 1850.0, "type": "UPI", "status": "FAILED", "channel": "UPI",
+      "initiated_at": "2026-06-23T09:30:00+05:30", "settled_at": null
+    },
+    "turns": [
+      {
+        "turn": 1,
+        "user": "My payment failed but money got deducted",
+        "ticket_context": {"status": "open", "category": null, "history": []},
+        "expected": {
+          "response_type": "conversational",
+          "checks": [
+            {"type": "single_question_only", "value": true},
+            {"type": "message_max_length", "value": 250}
+          ],
+          "sample_message": "Just to check — was this a UPI payment where the amount was debited but the recipient didn't receive it?"
+        }
+      },
+      {
+        "turn": 2,
+        "user": "Yes, UPI payment. Sent ₹1850 to Zomato on 23rd",
+        "ticket_context": {
+          "status": "open", "category": null,
+          "history": [
+            {"role": "user", "content": "My payment failed but money got deducted"},
+            {"role": "assistant", "content": "Just to check — was this a UPI payment where the amount was debited but the recipient didn't receive it?"}
+          ]
+        },
+        "expected": {
+          "response_type": "card",
+          "checks": [
+            {"type": "category_equals", "value": "UPI_FAILURE"},
+            {"type": "response_contains", "values": ["₹1,850", "Zomato", "1 Jul"]},
+            {"type": "has_escalation", "value": false}
+          ],
+          "sample_card": {
+            "category": "UPI_FAILURE",
+            "reference": "TXN010 | NPCI_RULE_UPI_T5",
+            "response": "₹1,850 debited to Zomato on 23 Jun. Reversal expected by 1 Jul 2026 as per NPCI UPI rules.",
+            "next_step": "Reversal expected by 1 Jul 2026. No action needed from you."
+          }
+        }
+      }
+    ]
+  },
+  {
+    "id": "OOS-01",
+    "group": "OUT_OF_SCOPE",
+    "persona": "off_topic_user",
+    "description": "Personal loan query. Completely out of scope. Agent explains scope briefly, does not attempt to answer or guess.",
+    "transaction": null,
+    "turns": [
+      {
+        "turn": 1,
+        "user": "How do I apply for a personal loan through your app?",
+        "ticket_context": {"status": "open", "category": null, "history": []},
+        "expected": {
+          "response_type": "conversational",
+          "checks": [
+            {"type": "message_not_contains", "values": ["guaranteed", "Great question", "Happy to help"]},
+            {"type": "message_not_contains", "values": ["here's how to apply", "loan eligibility", "interest rate"]},
+            {"type": "message_max_length", "value": 250}
+          ],
+          "sample_message": "That's outside what I'm set up to help with — I can only assist with UPI payment failures and Savings Pot withdrawals. For loan queries, the app's main support team would be the right place."
+        }
+      }
+    ]
+  },
+  {
+    "id": "OOS-02",
+    "group": "OUT_OF_SCOPE",
+    "persona": "off_topic_user",
+    "description": "Credit card declined. Out of scope. Agent does not diagnose card issues.",
+    "transaction": null,
+    "turns": [
+      {
+        "turn": 1,
+        "user": "My credit card was declined at a supermarket just now. Why does this keep happening?",
+        "ticket_context": {"status": "open", "category": null, "history": []},
+        "expected": {
+          "response_type": "conversational",
+          "checks": [
+            {"type": "message_not_contains", "values": ["your card may", "check your limit", "Great question", "Certainly"]},
+            {"type": "message_max_length", "value": 250}
+          ],
+          "sample_message": "Credit card issues are outside what I can help with here — I only handle UPI payment failures and Pot withdrawals. The app's support team can assist you with card-related queries."
+        }
+      }
+    ]
+  },
+  {
+    "id": "OOS-03",
+    "group": "OUT_OF_SCOPE",
+    "persona": "off_topic_user",
+    "description": "PIN reset query. Out of scope. No security advice, just redirect.",
+    "transaction": null,
+    "turns": [
+      {
+        "turn": 1,
+        "user": "I forgot my app PIN. How do I reset it?",
+        "ticket_context": {"status": "open", "category": null, "history": []},
+        "expected": {
+          "response_type": "conversational",
+          "checks": [
+            {"type": "message_not_contains", "values": ["go to settings", "tap on PIN", "Great question", "Certainly"]},
+            {"type": "message_max_length", "value": 250}
+          ],
+          "sample_message": "PIN resets are outside what I can help with here — I focus on UPI failures and Pot withdrawals. The app's support section should have a reset option."
+        }
+      }
+    ]
+  },
+  {
+    "id": "OOS-04",
+    "group": "OUT_OF_SCOPE",
+    "persona": "off_topic_user",
+    "description": "Interest rate question. Out of scope. Do not quote any interest rate.",
+    "transaction": null,
+    "turns": [
+      {
+        "turn": 1,
+        "user": "What's the current interest rate on my Savings Pot? I want to compare it with FDs.",
+        "ticket_context": {"status": "open", "category": null, "history": []},
+        "expected": {
+          "response_type": "conversational",
+          "checks": [
+            {"type": "message_not_contains", "values": ["% per annum", "7%", "8%", "6%", "Great question", "Certainly"]},
+            {"type": "message_max_length", "value": 250}
+          ],
+          "sample_message": "Interest rate queries are outside what I handle — I only help with UPI payment failures and Pot withdrawals. For rates and product details, the app's support team or help centre would have the information."
+        }
+      }
+    ]
+  },
+  {
+    "id": "OOS-05",
+    "group": "OUT_OF_SCOPE",
+    "persona": "off_topic_user",
+    "description": "Generic greeting with no issue described. Classified as out of scope. Agent briefly explains scope, invites the real query.",
+    "transaction": null,
+    "turns": [
+      {
+        "turn": 1,
+        "user": "Hi there, I need some help.",
+        "ticket_context": {"status": "open", "category": null, "history": []},
+        "expected": {
+          "response_type": "conversational",
+          "checks": [
+            {"type": "message_not_contains", "values": ["Great question", "Happy to help", "Certainly", "Of course!"]},
+            {"type": "message_max_length", "value": 250}
+          ],
+          "sample_message": "I can help with UPI payment failures where money was debited but not received, or Savings Pot withdrawals that are stuck. Is your issue one of those?"
+        }
+      }
+    ]
+  },
+  {
+    "id": "OOS-06",
+    "group": "OUT_OF_SCOPE",
+    "persona": "off_topic_user",
+    "description": "Account closure request. Out of scope. Do not attempt to process or explain how to close an account.",
+    "transaction": null,
+    "turns": [
+      {
+        "turn": 1,
+        "user": "I want to close my account and get all my money back.",
+        "ticket_context": {"status": "open", "category": null, "history": []},
+        "expected": {
+          "response_type": "conversational",
+          "checks": [
+            {"type": "message_not_contains", "values": ["to close your account", "withdrawal all funds", "Great question", "Certainly"]},
+            {"type": "message_max_length", "value": 250}
+          ],
+          "sample_message": "Account closures are outside what I can help with here — I only handle UPI payment failures and Pot withdrawal issues. For account closure, the app's support team is the right contact."
+        }
+      }
+    ]
+  },
+  {
+    "id": "VAL-01",
+    "group": "VALIDATION",
+    "persona": "edge_case",
+    "description": "Message over 500 characters. Input cap fires before any DB or API call. Instant error response.",
+    "transaction": null,
+    "turns": [
+      {
+        "turn": 1,
+        "user": "I am writing to express my deep concern and frustration regarding a UPI payment failure that occurred on the 23rd of June 2026. I attempted to send ₹1,850 to Zomato via UPI and while the amount was debited from my account the payment did not reach Zomato. I have been waiting for more than three days and have not received any reversal. I have contacted my bank and they have asked me to contact you. I also called the NPCI helpline and they said the reversal should have happened within T+5. I am extremely worried about this and request you to please look into this matter as soon as possible and ensure that my money is returned to me at the earliest convenience.",
+        "ticket_context": {"status": "open", "category": null, "history": []},
+        "expected": {
+          "response_type": "error",
+          "checks": [
+            {"type": "ticket_status_equals", "value": "error"},
+            {"type": "message_contains", "values": ["500 characters"]},
+            {"type": "feedback_prompt_equals", "value": false}
+          ],
+          "sample_message": "Your message is too long. Please keep it under 500 characters."
+        }
+      }
+    ]
+  },
+  {
+    "id": "VAL-02",
+    "group": "VALIDATION",
+    "persona": "edge_case",
+    "description": "User provides a TXN ID that doesn't exist in the database (TXN999). No-transaction path fires, agent asks naturally for correct ID.",
+    "transaction": null,
+    "turns": [
+      {
+        "turn": 1,
+        "user": "My transaction TXN999 failed. Please check.",
+        "ticket_context": {"status": "open", "category": null, "history": []},
+        "expected": {
+          "response_type": "conversational",
+          "checks": [
+            {"type": "message_not_contains", "values": ["guaranteed", "Great question"]},
+            {"type": "message_contains_any", "values": ["TXN", "transaction ID", "couldn't find"]},
+            {"type": "message_max_length", "value": 250}
+          ],
+          "sample_message": "I couldn't find transaction TXN999 in your account. Could you double-check the TXN ID? It should start with TXN followed by numbers — you can find it in the app under Transactions."
+        }
+      }
+    ]
+  },
+  {
+    "id": "VAL-03",
+    "group": "VALIDATION",
+    "persona": "edge_case",
+    "description": "Completely gibberish input. Classifier should return OUT_OF_SCOPE or UNCLEAR. Agent handles gracefully.",
+    "transaction": null,
+    "turns": [
+      {
+        "turn": 1,
+        "user": "asdfjkl qwerty zxcvbnm 12345",
+        "ticket_context": {"status": "open", "category": null, "history": []},
+        "expected": {
+          "response_type": "conversational",
+          "checks": [
+            {"type": "message_not_contains", "values": ["Great question", "Happy to help", "Certainly", "guaranteed"]},
+            {"type": "message_max_length", "value": 250}
+          ],
+          "sample_message": "I'm not sure I understood that — I can help with UPI payment failures or Savings Pot withdrawals. Is that what you're dealing with?"
+        }
+      }
+    ]
+  },
+  {
+    "id": "VAL-04",
+    "group": "VALIDATION",
+    "persona": "edge_case",
+    "description": "SQL injection attempt in message. Treated as plain text. Classifier categorizes normally, no special handling needed.",
+    "transaction": null,
+    "turns": [
+      {
+        "turn": 1,
+        "user": "'; DROP TABLE transactions; -- my UPI payment failed",
+        "ticket_context": {"status": "open", "category": null, "history": []},
+        "expected": {
+          "response_type": "conversational",
+          "checks": [
+            {"type": "message_not_contains", "values": ["DROP TABLE", "SQL", "injection", "Great question"]},
+            {"type": "message_max_length", "value": 300}
+          ],
+          "sample_message": "It sounds like you have a UPI payment issue — was the amount debited from your account but not received by the merchant? Could you share more details?"
+        }
+      }
+    ]
+  }
+]

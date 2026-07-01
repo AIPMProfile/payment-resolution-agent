@@ -1,0 +1,85 @@
+{
+  "version": "1.0.0",
+  "last_updated": "2026-06-25",
+  "rules": {
+    "NPCI_RULE_UPI_T5": {
+      "rule_id": "NPCI_RULE_UPI_T5",
+      "description": "Failed UPI transactions where payer is debited must auto-reverse within T+5 business days",
+      "source": "NPCI Circular NPCI/2020-21/UPI/0138",
+      "category": "UPI_FAILURE",
+      "reversal_business_days": 5
+    },
+    "NPCI_RULE_UPI_T1": {
+      "rule_id": "NPCI_RULE_UPI_T1",
+      "description": "If beneficiary bank is at fault, reversal within T+1 business day",
+      "source": "NPCI Circular NPCI/2020-21/UPI/0138",
+      "category": "UPI_FAILURE",
+      "reversal_business_days": 1
+    },
+    "NEFT_RULE_BATCH_WINDOW": {
+      "rule_id": "NEFT_RULE_BATCH_WINDOW",
+      "description": "NEFT settles in 48 half-hourly batches per day via Federal Bank, 00:30 to 00:00 IST",
+      "source": "RBI NEFT Guidelines",
+      "category": "POT_WITHDRAWAL",
+      "batches_per_day": 48,
+      "first_batch_time": "00:30",
+      "last_batch_time": "00:00",
+      "late_cutoff_hour": 23,
+      "late_cutoff_minute": 0
+    },
+    "NEFT_RULE_ESCALATION_THRESHOLD": {
+      "rule_id": "NEFT_RULE_ESCALATION_THRESHOLD",
+      "description": "If more than 2 hours since initiated_at with no settled_at, state that a senior colleague has been notified and will reach out within 2 hours — user does not need to do anything",
+      "category": "POT_WITHDRAWAL",
+      "threshold_hours": 2
+    },
+    "ESCALATION_RULE_AMOUNT": {
+      "rule_id": "ESCALATION_RULE_AMOUNT",
+      "description": "Mandatory escalation if transaction amount exceeds 50000 INR; senior colleague will reach out within category SLA — user does not need to do anything",
+      "threshold_inr": 50000
+    },
+    "ESCALATION_RULE_DISTRESS": {
+      "rule_id": "ESCALATION_RULE_DISTRESS",
+      "description": "Mandatory escalation if user message contains distress keywords; senior colleague will reach out within SLA on registered contact — user does not need to do anything, never ask for personal info",
+      "keywords": ["rent", "emergency", "urgent", "hospital", "need today"]
+    }
+  },
+  "forbidden_phrases": [
+    "guaranteed",
+    "definitely",
+    "probably",
+    "likely",
+    "should be",
+    "your money is safe"
+  ],
+  "filler_openers": [
+    "great question",
+    "certainly",
+    "i understand your frustration",
+    "happy to help",
+    "of course",
+    "absolutely",
+    "sure thing",
+    "no problem"
+  ],
+  "auto_confirm_keywords": [
+    "yes credited",
+    "got the money",
+    "resolved",
+    "thank you it worked",
+    "money arrived",
+    "received it",
+    "it came through",
+    "money is back",
+    "refund received"
+  ],
+  "still_not_credited_keywords": [
+    "still not credited",
+    "still not received",
+    "still pending",
+    "money still not there",
+    "still waiting",
+    "not yet credited",
+    "not arrived yet"
+  ]
+}
