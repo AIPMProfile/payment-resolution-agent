@@ -47,7 +47,7 @@ ARIZE_API_KEY=
 ARIZE_SPACE_ID=
 ```
 
-Run `supabase_schema.sql` in Supabase before seeding.
+Run `app/db/supabase_schema.sql` in Supabase before seeding.
 
 Chat: `http://localhost:8000`  
 Admin: `http://localhost:8000/admin/?key=YOUR_ADMIN_KEY`

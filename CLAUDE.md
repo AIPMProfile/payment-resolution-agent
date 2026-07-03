@@ -37,7 +37,7 @@ pytest tests/ -v
 test_regression_guarantee_language.py documents a real failure caught during testing.
 
 ## Supabase schema
-Schema reference in supabase_schema.sql.
+Schema reference in app/db/supabase_schema.sql.
 To reset seed data: truncate transactions and users tables, then re-run python -m app.db.seed.
 
 ## Arize observability
