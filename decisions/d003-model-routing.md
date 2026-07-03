@@ -16,7 +16,7 @@ Route by function:
 No routing changes without explicit approval.
 
 ## Why
-Classification is a structured label task -- Haiku is sufficient and fast. Composition needs nuance and regulatory awareness -- Sonnet handles this. The LLM judge uses Opus to reduce self-evaluation bias (Opus judging Sonnet output, not Sonnet judging itself). Using a cheaper model for the wrong task saves money but costs quality in ways that are hard to detect.
+Classification is a structured label task -- Haiku is sufficient and fast. Composition needs nuance and regulatory awareness -- Sonnet handles this. The LLM judge uses Opus to reduce self-evaluation bias (Opus judging Sonnet output, not Sonnet judging itself). Opus judges Sonnet output to prevent correlated failure — an LLM grading its own output makes the same category of mistakes as the output it is grading. Opus and Sonnet fail differently, which is why the judge must be a separate, stronger model.
 
 ## Consequences
 - Model IDs are logged in every `eval_queue` trace for auditability

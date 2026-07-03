@@ -11,7 +11,7 @@ Most agent systems embed all resolution knowledge in the system prompt. This mea
 Resolution knowledge lives in per-category skill files (`skills/*.md`), loaded after classification. The base system prompt contains only structural rules (format, forbidden phrases, grounding). Skills are never inlined into `prompts.py`.
 
 ## Why
-Loading only the relevant skill reduces context window usage and prevents category contamination. Skills can be versioned independently via the `policy_versions` table, and the admin approval flow updates skills atomically with `policy_rules.json`.
+Loading only the relevant skill reduces context window usage and prevents category contamination — for example, UPI T+5 reversal rules bleeding into a POT_WITHDRAWAL response would produce a wrong deadline, telling the user to wait 5 business days for a withdrawal that should settle in the next NEFT batch. Skills can be versioned independently via the `policy_versions` table, and the admin approval flow updates skills atomically with `policy_rules.json`.
 
 ## Consequences
 - Adding a new category requires: new classifier label, new skill file, new tests
