@@ -4,7 +4,29 @@ Run: python -m app.db.seed
 Tables must already exist (see supabase_schema.sql).
 """
 
+from datetime import datetime, timedelta, timezone
+
 from app.db.supabase_client import get_supabase_client
+
+_IST = timezone(timedelta(hours=5, minutes=30))
+_NOW = datetime.now(_IST)
+
+
+def _ago(**kw) -> datetime:
+    """
+    Timestamp relative to seed time, in IST.
+
+    Seed dates MUST stay inside the retriever's 30-day lookback window
+    (_thirty_days_ago in app/core/retriever.py) or the agent cannot find
+    these transactions and every query falls back to asking for a TXN ID.
+    Hardcoded dates silently expire — always express seed data as offsets.
+    """
+    return _NOW - timedelta(**kw)
+
+
+def _iso(dt: datetime) -> str:
+    return dt.isoformat()
+
 
 USERS = [
     {"user_id": "USR001", "name": "Priya Sharma", "phone": "9876543210"},
@@ -22,7 +44,8 @@ TRANSACTIONS = [
         "status": "FAILED",
         "channel": "UPI",
         "notes": "UPI2340SW18",
-        "initiated_at": "2026-06-30T10:23:00+05:30",
+        # T+5 business-day deadline has passed — drives the "deadline passed" card
+        "initiated_at": _iso(_ago(days=8)),
         "settled_at": None,
     },
     {
@@ -34,7 +57,7 @@ TRANSACTIONS = [
         "status": "FAILED",
         "channel": "UPI",
         "notes": None,
-        "initiated_at": "2026-07-01T11:05:00+05:30",
+        "initiated_at": _iso(_ago(days=2)),
         "settled_at": None,
     },
     {
@@ -46,8 +69,8 @@ TRANSACTIONS = [
         "status": "SUCCESS",
         "channel": "CARD",
         "notes": None,
-        "initiated_at": "2026-06-15T14:30:00+05:30",
-        "settled_at": "2026-06-15T14:31:00+05:30",
+        "initiated_at": _iso(_ago(days=20)),
+        "settled_at": _iso(_ago(days=20) + timedelta(minutes=1)),
     },
     {
         "txn_id": "TXN004",
@@ -58,8 +81,8 @@ TRANSACTIONS = [
         "status": "SUCCESS",
         "channel": "INTERNAL",
         "notes": None,
-        "initiated_at": "2026-06-10T09:00:00+05:30",
-        "settled_at": "2026-06-10T09:00:01+05:30",
+        "initiated_at": _iso(_ago(days=25)),
+        "settled_at": _iso(_ago(days=25) + timedelta(seconds=1)),
     },
     {
         "txn_id": "TXN010",
@@ -70,7 +93,7 @@ TRANSACTIONS = [
         "status": "FAILED",
         "channel": "UPI",
         "notes": None,
-        "initiated_at": "2026-07-01T09:00:00+05:30",
+        "initiated_at": _iso(_ago(days=3)),
         "settled_at": None,
     },
     # TXN009: POT_WITHDRAWAL test case — 2h+ elapsed triggers escalation offer
@@ -83,7 +106,7 @@ TRANSACTIONS = [
         "status": "PENDING",
         "channel": "NEFT",
         "notes": None,
-        "initiated_at": "2026-07-01T14:47:00+05:30",
+        "initiated_at": _iso(_ago(hours=3)),
         "settled_at": None,
     },
     # --- Arjun Mehta (USR002) ---
@@ -96,8 +119,8 @@ TRANSACTIONS = [
         "status": "SUCCESS",
         "channel": "UPI",
         "notes": None,
-        "initiated_at": "2026-06-20T09:00:00+05:30",
-        "settled_at": "2026-06-20T09:01:00+05:30",
+        "initiated_at": _iso(_ago(days=14)),
+        "settled_at": _iso(_ago(days=14) + timedelta(minutes=1)),
     },
     {
         "txn_id": "TXN006",
@@ -108,8 +131,8 @@ TRANSACTIONS = [
         "status": "SUCCESS",
         "channel": "CARD",
         "notes": None,
-        "initiated_at": "2026-06-19T11:00:00+05:30",
-        "settled_at": "2026-06-19T11:00:30+05:30",
+        "initiated_at": _iso(_ago(days=15, hours=4)),
+        "settled_at": _iso(_ago(days=15, hours=4) + timedelta(seconds=30)),
     },
     {
         "txn_id": "TXN007",
@@ -120,8 +143,8 @@ TRANSACTIONS = [
         "status": "SUCCESS",
         "channel": "CARD",
         "notes": None,
-        "initiated_at": "2026-06-19T15:00:00+05:30",
-        "settled_at": "2026-06-19T15:00:30+05:30",
+        "initiated_at": _iso(_ago(days=15)),
+        "settled_at": _iso(_ago(days=15) + timedelta(seconds=30)),
     },
     {
         "txn_id": "TXN008",
@@ -132,8 +155,8 @@ TRANSACTIONS = [
         "status": "SUCCESS",
         "channel": "CARD",
         "notes": None,
-        "initiated_at": "2026-06-17T16:30:00+05:30",
-        "settled_at": "2026-06-17T16:31:00+05:30",
+        "initiated_at": _iso(_ago(days=17)),
+        "settled_at": _iso(_ago(days=17) + timedelta(minutes=1)),
     },
 ]
 
