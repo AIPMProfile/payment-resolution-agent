@@ -12,6 +12,7 @@ const sidebar = document.getElementById('sidebar');
 
 let sessionToken = localStorage.getItem('session_token') || null;
 const DEMO_USER_ID = 'USR001';
+const AGENT_NAME = 'Sheldon';
 let currentTicketId = null;
 let cardCount = 0;
 
@@ -113,9 +114,11 @@ const CAT_LABEL = {
   'OUT_OF_SCOPE': 'General query',
 };
 
+// "Escalated" reads as alarm to a user whose money is missing, but it is good
+// news — a human has picked the case up. Label it as reassurance, not warning.
 const STATUS_LABEL = {
   open: 'Active',
-  escalated: 'Escalated',
+  escalated: 'Specialist on it',
   resolved: 'Resolved',
   auto_closed: 'Closed',
   pending_confirmation: 'Checking in',
@@ -164,7 +167,7 @@ async function loadTicketList() {
 
     list.innerHTML = tickets.map(t => {
       const emoji = CAT_EMOJI[t.category] || '📋';
-      const label = CAT_LABEL[t.category] || t.category || 'Ticket';
+      const label = CAT_LABEL[t.category] || t.category || 'New conversation';
       const statusLabel = STATUS_LABEL[t.status] || t.status;
       const statusCls = `tis-${t.status}`;
       const isActive = t.ticket_id === currentTicketId;
@@ -182,7 +185,6 @@ async function loadTicketList() {
           </div>
           <div class="ticket-item-bottom">
             <span class="ticket-item-date">${date}</span>
-            <span class="ticket-item-id">#${t.ticket_id.substring(0, 8)}</span>
           </div>
           <div class="ticket-mini-progress">${progress}</div>
         </div>`;
@@ -212,7 +214,7 @@ function upsertSidebarTicket(ticketId, status, category) {
     return;
   }
   const emoji = CAT_EMOJI[category] || '\u{1F4CB}';
-  const label = CAT_LABEL[category] || category || 'Ticket';
+  const label = CAT_LABEL[category] || category || 'New conversation';
   const statusLabel = STATUS_LABEL[status] || status;
   const html = `
     <div class="ticket-item active" data-ticket-id="${ticketId}" data-status="${status}">
@@ -225,7 +227,6 @@ function upsertSidebarTicket(ticketId, status, category) {
       </div>
       <div class="ticket-item-bottom">
         <span class="ticket-item-date">Today</span>
-        <span class="ticket-item-id">#${ticketId.substring(0, 8)}</span>
       </div>
       <div class="ticket-mini-progress">${ticketProgressHTML(status)}</div>
     </div>`;
@@ -260,9 +261,9 @@ async function loadTicketConversation(ticketId, status) {
     const history = data.conversation_json || [];
     history.forEach(msg => {
       if (msg.role === 'user') {
-        appendUserBubble(msg.content);
+        appendUserBubble(msg.content, false);
       } else if (msg.role === 'assistant') {
-        appendSystemMsg(msg.content);
+        appendSystemMsg(msg.content, false);
       }
     });
 
@@ -340,7 +341,7 @@ function updateTicketHeader(ticketId, status) {
 
   const labels = {
     open: 'Active',
-    escalated: 'Escalated',
+    escalated: 'Specialist on it',
     resolved: 'Resolved',
     auto_closed: 'Closed',
     pending_confirmation: 'Checking in',
@@ -350,7 +351,7 @@ function updateTicketHeader(ticketId, status) {
   statusPill.className = `status-pill status-${status}`;
 
   const catLabel = CAT_LABEL[chatArea.dataset.category] || '';
-  document.getElementById('header-title').textContent = catLabel || `Ticket #${ticketId.substring(0, 8)}`;
+  document.getElementById('header-title').textContent = catLabel || 'Support ticket';
 
   const progressMap = {
     open: 'reported',
@@ -373,19 +374,49 @@ function dismissWelcome() {
 
 // ── Message renderers ──
 
-function appendUserBubble(text) {
+function nowTime() {
+  return new Date().toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit' });
+}
+
+// withTime is false when replaying stored history: conversation_json holds no
+// per-message timestamps, so stamping "now" on an old turn would be a lie.
+function appendUserBubble(text, withTime = true) {
+  const row = document.createElement('div');
+  row.className = 'user-row';
   const el = document.createElement('div');
   el.className = 'msg-user';
   el.textContent = text;
-  chatArea.appendChild(el);
+  row.appendChild(el);
+  if (withTime) {
+    const t = document.createElement('div');
+    t.className = 'msg-time';
+    t.textContent = nowTime();
+    row.appendChild(t);
+  }
+  chatArea.appendChild(row);
   scrollBottom();
 }
 
-function appendSystemMsg(text) {
+// Every agent turn is wrapped in an avatar + name row so the thread reads as a
+// conversation with Sheldon rather than as anonymous system output.
+function agentRow(contentEl, withTime = true) {
+  const row = document.createElement('div');
+  row.className = 'agent-row';
+  const time = withTime ? `<span class="msg-time">${escHtml(nowTime())}</span>` : '';
+  row.innerHTML = `
+    <div class="agent-avatar">${escHtml(AGENT_NAME.charAt(0))}</div>
+    <div class="agent-col">
+      <div class="agent-meta"><span class="agent-name">${escHtml(AGENT_NAME)}</span>${time}</div>
+    </div>`;
+  row.querySelector('.agent-col').appendChild(contentEl);
+  return row;
+}
+
+function appendSystemMsg(text, withTime = true) {
   const el = document.createElement('div');
   el.className = 'msg-system';
   el.textContent = text;
-  chatArea.appendChild(el);
+  chatArea.appendChild(agentRow(el, withTime));
   scrollBottom();
   return el;
 }
@@ -393,9 +424,10 @@ function appendSystemMsg(text) {
 function appendTyping() {
   const el = document.createElement('div');
   el.className = 'typing';
-  el.id = 'typing-indicator';
   el.innerHTML = '<span></span><span></span><span></span>';
-  chatArea.appendChild(el);
+  const row = agentRow(el, false);
+  row.id = 'typing-indicator';
+  chatArea.appendChild(row);
   scrollBottom();
 }
 
@@ -423,7 +455,7 @@ function appendResponseCard(card, ticketId, showFeedback) {
     ${showFeedback ? buildFeedbackWidget(ticketId) : ''}
   `;
 
-  chatArea.appendChild(wrap);
+  chatArea.appendChild(agentRow(wrap));
   scrollBottom();
   if (showFeedback) bindFeedback(wrap, ticketId);
 }
@@ -433,7 +465,7 @@ function appendResponseCard(card, ticketId, showFeedback) {
 function buildFeedbackWidget(ticketId) {
   return `
     <div class="feedback-widget" data-ticket="${ticketId}">
-      <p>Was this helpful?</p>
+      <p>Did this answer your question?</p>
       <div class="score-buttons">
         <button class="score-btn" data-score="1">Not really</button>
         <button class="score-btn" data-score="2">Somewhat</button>

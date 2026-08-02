@@ -465,6 +465,91 @@ header {
   text-transform: uppercase;
 }
 
+/* ── Agent turn: avatar + name, so replies read as a chat from Sheldon ── */
+.agent-row {
+  display: flex;
+  align-self: flex-start;
+  align-items: flex-start;
+  gap: 10px;
+  max-width: 90%;
+}
+
+.agent-avatar {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--orange-light);
+  border: 1px solid #F8D5C6;
+  color: var(--orange-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.agent-col {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  flex: 1;
+}
+
+.agent-meta {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.agent-name {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--gray);
+  letter-spacing: 0.02em;
+}
+
+/* Timestamps: this product is about when money moves — the thread should
+   carry time too. Shown only on live turns (replayed history has none). */
+.msg-time {
+  font-size: 11px;
+  color: var(--gray-light);
+  white-space: nowrap;
+}
+
+.user-row {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  align-self: flex-end;
+  gap: 4px;
+  max-width: 72%;
+}
+
+.user-row .msg-user {
+  max-width: 100%;
+}
+
+/* Short threads otherwise float at the top of a tall empty panel. Pushing the
+   first child down bottom-anchors the conversation without the scroll clipping
+   that justify-content: flex-end causes on an overflowing flex container. */
+#chat-area > *:first-child {
+  margin-top: auto;
+}
+
+/* Inside an agent row the bubble owns the column, so drop the standalone
+   centering/width these elements use when rendered on their own. */
+.agent-row .msg-system {
+  align-self: flex-start;
+  text-align: left;
+  max-width: 100%;
+}
+
+.agent-row .response-card {
+  max-width: 100%;
+}
+
 /* ── System/escalation message ── */
 .msg-system {
   align-self: center;
