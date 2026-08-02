@@ -18,7 +18,9 @@ def client():
 
 
 def test_chat_without_token_still_works(client):
-    with patch("app.lifecycle.chat_handler.handle_chat") as mock_chat:
+    # Patch where the name is looked up: app/main.py from-imports handle_chat,
+    # so patching app.lifecycle.chat_handler.handle_chat does not intercept the call.
+    with patch("app.main.handle_chat") as mock_chat:
         mock_chat.return_value = MagicMock(
             ticket_id="t1", ticket_status="open",
             card=MagicMock(category="UPI_FAILURE", reference="TXN001", response="test", next_step="wait"),
