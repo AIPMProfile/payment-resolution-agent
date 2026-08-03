@@ -65,10 +65,14 @@
   "auto_confirm_keywords": [
     "yes credited",
     "got the money",
-    "resolved",
+    "it is resolved",
+    "it's resolved",
+    "now resolved",
+    "issue resolved",
     "thank you it worked",
     "money arrived",
-    "received it",
+    "i received it",
+    "have received it",
     "it came through",
     "money is back",
     "refund received"

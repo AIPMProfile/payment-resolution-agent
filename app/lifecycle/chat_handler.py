@@ -53,6 +53,26 @@ def _contains_any(text: str, keywords: list[str]) -> bool:
     return any(k in lt for k in keywords)
 
 
+# Substring matching cannot see negation: "I haven't received it" contains
+# "received it". Auto-confirm closes a ticket for someone whose money may still
+# be missing, so it must never fire on a denial or a question.
+#
+# This deliberately errs toward NOT closing. "got the money, can't thank you
+# enough" is held open by the "n't" marker — a ticket that stays open one cycle
+# longer is recoverable; a ticket wrongly closed on a user who is still out of
+# pocket is not.
+_AUTO_CONFIRM_BLOCKERS = (
+    "not ", "n't", "cannot", "never ", "still waiting", "when will", "how long",
+)
+
+
+def _blocks_auto_confirm(text: str) -> bool:
+    lt = text.lower().strip()
+    if lt.endswith("?"):
+        return True
+    return any(marker in lt for marker in _AUTO_CONFIRM_BLOCKERS)
+
+
 def _get_or_create_ticket(user_id: str, ticket_id: Optional[str]) -> dict:
     db = get_supabase_client()
 
@@ -193,6 +213,7 @@ async def handle_chat(request: ChatRequest) -> ChatResponse:
         if (
             ticket.get("category") in ("UPI_FAILURE", "POT_WITHDRAWAL")
             and _contains_any(request.message, rules["auto_confirm_keywords"])
+            and not _blocks_auto_confirm(request.message)
         ):
             _update_ticket(ticket_id, {"status": "resolved"})
             parent.set_attribute("output.value", "auto_confirmed")
