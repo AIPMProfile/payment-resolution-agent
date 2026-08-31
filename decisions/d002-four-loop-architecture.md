@@ -14,7 +14,7 @@ Separate the agent into 4 loops with enforced boundaries:
 - **Lifecycle loop** (chat handler, follow-up cron, auto-close cron) -- event-driven orchestration
 - **Learning loop** (feedback, nightly analysis, admin gate, eval gate, drift check) -- improvement with human approval
 
-No cross-boundary writes. Core never writes to eval_queue. Verification never calls the Anthropic API. Learning never auto-applies suggestions.
+No cross-boundary writes. Core never writes to eval_queue. Verification never calls the LLM API. Learning never auto-applies suggestions.
 
 ## Why
 Each loop has a different correctness guarantee. Verification must stay deterministic so policy checks are reproducible. Learning must never auto-apply for regulatory compliance. Mixing loops would make the system impossible to audit.

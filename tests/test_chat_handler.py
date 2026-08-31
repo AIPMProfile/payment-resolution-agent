@@ -1,7 +1,7 @@
 """
 Integration tests for chat_handler.handle_chat.
 
-All external I/O is mocked — Supabase, Anthropic API, tracer.
+All external I/O is mocked — Supabase, LLM API, tracer.
 These tests exercise the actual handler flow end-to-end and catch
 flow-level bugs that unit tests on isolated components cannot catch.
 """

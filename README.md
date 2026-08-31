@@ -22,7 +22,7 @@ event-driven lifecycle, and a human-gated self-improvement loop.
 
 ## Stack
 
-FastAPI, Supabase, Anthropic API, OpenTelemetry + Arize
+FastAPI, Supabase, LLM API, OpenTelemetry + Arize
 
 ## Setup
 

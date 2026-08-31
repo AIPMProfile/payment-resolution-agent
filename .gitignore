@@ -2,7 +2,7 @@
 .env
 *.pem
 
-# Claude Code local config
+# Local agent tool config
 .claude/
 .agents/
 skills-lock.json

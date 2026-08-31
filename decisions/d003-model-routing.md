@@ -20,4 +20,4 @@ Classification is a structured label task -- Haiku is sufficient and fast. Compo
 
 ## Consequences
 - Model IDs are logged in every `eval_queue` trace for auditability
-- Swapping models requires updating CLAUDE.md, AGENTS.md, and test expectations
+- Swapping models requires updating AGENTS.md and test expectations

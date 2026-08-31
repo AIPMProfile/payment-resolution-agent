@@ -1,5 +1,5 @@
 """
-Classifier tests — mock the Anthropic client so no real API calls are made.
+Classifier tests — mock the LLM client so no real API calls are made.
 Tests verify the classification logic for valid and invalid responses.
 """
 

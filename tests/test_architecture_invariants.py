@@ -1,5 +1,5 @@
 """
-Architecture invariants — the rules in CLAUDE.md that no test previously enforced.
+Architecture invariants — the rules in AGENTS.md that no test previously enforced.
 
 These are the guarantees the project treats as non-negotiable: loop boundaries,
 model routing, the mandatory human approval gate, and trace completeness. Each
@@ -39,9 +39,9 @@ def _imported_module_roots(tree: ast.AST) -> set[str]:
 
 # --- Loop boundary: Verification must stay deterministic ---
 
-def test_verification_loop_makes_no_anthropic_calls():
+def test_verification_loop_makes_no_llm_calls():
     """
-    CLAUDE.md: "Call the Anthropic API from app/verification/" is a Never.
+    AGENTS.md: "Call the LLM API from app/verification/" is a Never.
     The verification loop must stay deterministic — an LLM call here makes
     policy decisions non-reproducible and breaks the release gate's baselines.
     """
@@ -55,7 +55,7 @@ def test_verification_loop_makes_no_anthropic_calls():
                 offenders.append(f"{path.name}: references anthropic at line {node.lineno}")
 
     assert not offenders, (
-        "Verification loop must make no Anthropic API calls:\n  " + "\n  ".join(offenders)
+        "Verification loop must make no LLM API calls:\n  " + "\n  ".join(offenders)
     )
 
 
@@ -79,7 +79,7 @@ def test_verification_loop_does_not_import_core_composer_or_classifier():
 
 def test_core_loop_never_writes_to_eval_queue():
     """
-    CLAUDE.md: "Write to eval_queue from app/core/" is a Never.
+    AGENTS.md: "Write to eval_queue from app/core/" is a Never.
     eval_queue belongs to the Lifecycle loop; a write from Core would produce
     duplicate trace rows and corrupt nightly analysis clustering.
     """
@@ -98,7 +98,7 @@ def test_core_loop_never_writes_to_eval_queue():
 
 def test_model_routing_is_unchanged():
     """
-    CLAUDE.md pins each model to one role. Swapping them silently changes cost
+    AGENTS.md pins each model to one role. Swapping them silently changes cost
     and quality characteristics, and the Opus judge grading its own output would
     invalidate the nightly analysis.
     """
@@ -131,7 +131,7 @@ def test_opus_is_only_used_by_nightly_analysis():
 @pytest.mark.asyncio
 async def test_card_trace_insert_includes_both_model_ids():
     """
-    CLAUDE.md: "Include model_id and classifier_model_id in every eval_queue
+    AGENTS.md: "Include model_id and classifier_model_id in every eval_queue
     trace_data insert." Without them, nightly analysis cannot attribute a
     failure to the model that produced it.
     """
@@ -188,7 +188,7 @@ async def test_conversational_trace_insert_includes_both_model_ids():
 @pytest.mark.asyncio
 async def test_nightly_analysis_writes_suggestions_as_pending_only():
     """
-    CLAUDE.md: "Auto-apply a policy suggestion" is a Never — the human approval
+    AGENTS.md: "Auto-apply a policy suggestion" is a Never — the human approval
     gate is mandatory. Every suggestion nightly analysis produces must land as
     status=pending and nothing else.
     """
@@ -344,7 +344,7 @@ def test_approval_reverts_skill_file_when_eval_gate_detects_regression():
 
 def test_git_ops_stages_skill_file_and_policy_rules_together():
     """
-    CLAUDE.md: policy_rules.json and the skill file must always change together.
+    AGENTS.md: policy_rules.json and the skill file must always change together.
     commit_policy_change must stage both paths in the same commit, never one alone.
     """
     from app.learning import git_ops
